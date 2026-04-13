@@ -1,5 +1,19 @@
 import type { GraduationEvent } from "@/lib/types";
 
+export type EventNotificationCondition =
+  | "week-before"
+  | "day-before"
+  | "starts-today"
+  | "ongoing-open";
+export type TodayEventCountdownStatus = "starts" | "ends";
+
+export type TodayEventCountdown = {
+  event: GraduationEvent;
+  status: TodayEventCountdownStatus;
+  remainingMs: number;
+  sortTime: number;
+};
+
 export const PREDEFINED_EVENTS: GraduationEvent[] = [
   {
     id: "final-exams",
@@ -42,6 +56,58 @@ export function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+export function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+export function isSameDay(a: Date, b: Date): boolean {
+  return startOfDay(a).getTime() === startOfDay(b).getTime();
+}
+
+function parseTimeParts(time: string | undefined): [number, number, number] {
+  if (!time) return [0, 0, 0];
+  const [hourPart = "0", minutePart = "0", secondPart = "0"] = time.split(":");
+  const hours = Number(hourPart);
+  const minutes = Number(minutePart);
+  const seconds = Number(secondPart);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    Number.isNaN(seconds) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59 ||
+    seconds < 0 ||
+    seconds > 59
+  ) {
+    return [0, 0, 0];
+  }
+
+  return [hours, minutes, seconds];
+}
+
+export function getEventDateTimeRange(event: GraduationEvent): { start: Date; end: Date } {
+  const startBase = parseLocalDate(event.startDate);
+  const endBase = parseLocalDate(event.endDate);
+
+  const [startHour, startMinute, startSecond] = parseTimeParts(event.startTime);
+  const [endHour, endMinute, endSecond] = event.endTime
+    ? parseTimeParts(event.endTime)
+    : [23, 59, 59];
+
+  const start = new Date(startBase);
+  start.setHours(startHour, startMinute, startSecond, 0);
+
+  const end = new Date(endBase);
+  end.setHours(endHour, endMinute, endSecond, 999);
+
+  return { start, end };
+}
+
 export function isDateInRange(date: Date, startDate: string, endDate: string): boolean {
   const normalized = startOfDay(date).getTime();
   const start = startOfDay(parseLocalDate(startDate)).getTime();
@@ -50,13 +116,105 @@ export function isDateInRange(date: Date, startDate: string, endDate: string): b
 }
 
 export function getActiveEvents(events: GraduationEvent[], date: Date): GraduationEvent[] {
-  return events.filter((event) => isDateInRange(date, event.startDate, event.endDate));
+  return events.filter((event) => {
+    const { start, end } = getEventDateTimeRange(event);
+    return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+  });
+}
+
+export function getTodayEventCountdowns(
+  events: GraduationEvent[],
+  now: Date,
+): TodayEventCountdown[] {
+  const today = startOfDay(now);
+
+  return events
+    .map((event) => {
+      const { start, end } = getEventDateTimeRange(event);
+
+      if (!isDateInRange(today, event.startDate, event.endDate)) {
+        return null;
+      }
+
+      if (now.getTime() > end.getTime()) {
+        return null;
+      }
+
+      if (now.getTime() < start.getTime()) {
+        if (!isSameDay(start, now)) return null;
+        return {
+          event,
+          status: "starts" as const,
+          remainingMs: start.getTime() - now.getTime(),
+          sortTime: start.getTime(),
+        };
+      }
+
+      return {
+        event,
+        status: "ends" as const,
+        remainingMs: end.getTime() - now.getTime(),
+        sortTime: end.getTime(),
+      };
+    })
+    .filter((entry): entry is TodayEventCountdown => entry !== null)
+    .sort((a, b) => {
+      if (a.status !== b.status) {
+        return a.status === "starts" ? -1 : 1;
+      }
+
+      return a.sortTime - b.sortTime;
+    });
+}
+
+export function formatDurationHMS(durationMs: number): string {
+  const safeMs = Math.max(0, durationMs);
+  const totalSeconds = Math.floor(safeMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(
+    seconds,
+  ).padStart(2, "0")}`;
+}
+
+export function getEventNotificationCondition(
+  event: GraduationEvent,
+  todayDate: Date,
+): EventNotificationCondition | null {
+  const today = startOfDay(todayDate);
+  const tomorrow = addDays(today, 1);
+  const { start, end } = getEventDateTimeRange(event);
+
+  const weekBeforeStart = addDays(start, -7);
+  const startsInOneWeek = todayDate.getTime() >= weekBeforeStart.getTime() && todayDate.getTime() < addDays(weekBeforeStart, 1).getTime();
+  const startsTomorrow = isSameDay(tomorrow, startOfDay(start));
+  const startsNowOrEarlierToday =
+    isSameDay(todayDate, start) &&
+    todayDate.getTime() >= start.getTime() &&
+    todayDate.getTime() <= end.getTime();
+  const isOngoing = todayDate.getTime() >= start.getTime() && todayDate.getTime() <= end.getTime();
+
+  if (startsInOneWeek) return "week-before";
+  if (startsTomorrow) return "day-before";
+  if (startsNowOrEarlierToday) return "starts-today";
+  if (isOngoing) return "ongoing-open";
+  return null;
 }
 
 export function sortEventsByStartDate(events: GraduationEvent[]): GraduationEvent[] {
   return [...events].sort(
     (a, b) => parseLocalDate(a.startDate).getTime() - parseLocalDate(b.startDate).getTime(),
   );
+}
+
+export function sortCustomEventsChronologically(events: GraduationEvent[]): GraduationEvent[] {
+  return [...events].sort((a, b) => {
+    const aStart = getEventDateTimeRange(a).start.getTime();
+    const bStart = getEventDateTimeRange(b).start.getTime();
+    return aStart - bStart;
+  });
 }
 
 export function getDaysUntil(targetDate: Date, currentDate = new Date()): number {
@@ -70,6 +228,22 @@ export function calculateProgress(currentDate: Date, startDate: Date, endDate: D
   const elapsed = currentDate.getTime() - startDate.getTime();
   const percentage = (elapsed / total) * 100;
   return Math.min(100, Math.max(0, percentage));
+}
+
+export function getJourneyStartReference(
+  fallbackStartDate: Date,
+  milestones: GraduationEvent[],
+): Date {
+  if (milestones.length === 0) return fallbackStartDate;
+
+  const earliestMilestone = milestones.reduce((earliest, event) => {
+    const start = getEventDateTimeRange(event).start;
+    return start.getTime() < earliest.getTime() ? start : earliest;
+  }, getEventDateTimeRange(milestones[0]).start);
+
+  return fallbackStartDate.getTime() <= earliestMilestone.getTime()
+    ? fallbackStartDate
+    : earliestMilestone;
 }
 
 export function getUrgencyTone(daysLeft: number): "green" | "yellow" | "red" {

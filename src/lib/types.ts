@@ -5,6 +5,8 @@ export type GraduationEvent = {
   title: string;
   startDate: string;
   endDate: string;
+  startTime?: string;
+  endTime?: string;
   source: EventSource;
 };
 

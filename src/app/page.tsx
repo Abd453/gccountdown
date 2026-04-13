@@ -1,22 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { CountdownCard } from "@/components/CountdownCard";
 import { CustomEventForm } from "@/components/CustomEventForm";
 import { EventCard } from "@/components/EventCard";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { ProgressCard } from "@/components/ProgressCard";
+import { ToastMessage } from "@/components/ToastMessage";
 import { TodayPanel } from "@/components/TodayPanel";
 import { useCountdown } from "@/hooks/useCountdown";
 import {
   calculateProgress,
+  getEventNotificationCondition,
+  getEventDateTimeRange,
   getActiveEvents,
   getDailyMotivation,
   getDaysUntil,
+  getJourneyStartReference,
+  getTodayEventCountdowns,
   getUrgencyTone,
   parseLocalDate,
   PREDEFINED_EVENTS,
-  sortEventsByStartDate,
+  sortCustomEventsChronologically,
 } from "@/lib/events";
 import { loadCustomEvents, saveCustomEvents } from "@/lib/storage";
 import type { GraduationEvent } from "@/lib/types";
@@ -27,6 +34,9 @@ const JOURNEY_START = parseLocalDate("2026-01-01");
 export default function Home() {
   const countdown = useCountdown(GRADUATION_DATE);
   const [customEvents, setCustomEvents] = useState<GraduationEvent[]>(() => loadCustomEvents());
+  const [eventPendingDelete, setEventPendingDelete] = useState<GraduationEvent | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission | "unsupported">(() => {
       if (typeof window === "undefined") return "default";
@@ -38,33 +48,89 @@ export default function Home() {
     saveCustomEvents(customEvents);
   }, [customEvents]);
 
+  useEffect(() => {
+    if (!toastMessage) return;
+
+    const timeout = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
+
   const now = new Date();
-  const allEvents = sortEventsByStartDate([...PREDEFINED_EVENTS, ...customEvents]);
+  const fixedEvents = PREDEFINED_EVENTS;
+  const sortedCustomEvents = useMemo(
+    () => sortCustomEventsChronologically(customEvents),
+    [customEvents],
+  );
+  const allEvents = useMemo(
+    () => [...fixedEvents, ...sortedCustomEvents],
+    [fixedEvents, sortedCustomEvents],
+  );
+  const progressStart = useMemo(
+    () => getJourneyStartReference(JOURNEY_START, PREDEFINED_EVENTS),
+    [],
+  );
+  const todayCountdowns = getTodayEventCountdowns(allEvents, now);
   const activeToday = getActiveEvents(allEvents, now);
   const daysUntilGraduation = getDaysUntil(GRADUATION_DATE, now);
   const urgencyTone = getUrgencyTone(daysUntilGraduation);
-  const progress = calculateProgress(now, JOURNEY_START, GRADUATION_DATE);
+  const progress = calculateProgress(now, progressStart, GRADUATION_DATE);
   const motivationMessage = getDailyMotivation(now);
+  const hasImportantUpcomingOrActiveEvent = allEvents.some(
+    (event) => {
+      const condition = getEventNotificationCondition(event, now);
+      if (!condition) return false;
+
+      if (condition === "starts-today") {
+        const { start } = getEventDateTimeRange(event);
+        return now.getTime() >= start.getTime();
+      }
+
+      return true;
+    },
+  );
 
   useEffect(() => {
     if (notificationPermission !== "granted") return;
     if (typeof window === "undefined") return;
     if (!("Notification" in window)) return;
 
-    const todayKey = new Date().toISOString().split("T")[0];
+    allEvents.forEach((event) => {
+      const condition = getEventNotificationCondition(event, new Date());
+      let title = "";
+      let body = "";
 
-    activeToday.forEach((event) => {
-      const notificationKey = `notified-${event.id}-${todayKey}`;
+      if (condition === "week-before") {
+        title = `One Week Away: ${event.title}`;
+        body = "This event is one week away. Start preparing now.";
+      } else if (condition === "day-before") {
+        title = `Starts Tomorrow: ${event.title}`;
+        body = "Quick heads-up: this event begins tomorrow.";
+      } else if (condition === "starts-today") {
+        title = `Event Starts Today: ${event.title}`;
+        body = "This event starts today. Stay sharp and make it count.";
+      } else if (condition === "ongoing-open") {
+        title = `Ongoing Event: ${event.title}`;
+        body = "You opened the app during an active event.";
+      }
+
+      if (!condition) return;
+
+      const notificationKey = `event-notification-${event.id}-${condition}`;
       const alreadyNotified = window.localStorage.getItem(notificationKey);
 
       if (alreadyNotified) return;
 
-      new Notification(`Happening Today: ${event.title}`, {
-        body: "Stay focused and finish strong for graduation.",
+      new Notification(title, {
+        body,
+        tag: `gc-${event.id}-${condition}`,
+        requireInteraction: true,
       });
       window.localStorage.setItem(notificationKey, "1");
     });
-  }, [activeToday, notificationPermission]);
+  }, [allEvents, notificationPermission]);
 
   async function requestNotificationPermission() {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -76,8 +142,29 @@ export default function Home() {
     setNotificationPermission(permission);
   }
 
-  function handleAddEvent(title: string, startDate: string, endDate: string) {
-    if (parseLocalDate(endDate).getTime() < parseLocalDate(startDate).getTime()) {
+  function handleAddEvent(
+    title: string,
+    startDate: string,
+    endDate: string,
+    startTime?: string,
+    endTime?: string,
+  ) {
+    const startDateTime = new Date(parseLocalDate(startDate));
+    const endDateTime = new Date(parseLocalDate(endDate));
+
+    if (startTime) {
+      const [hours, minutes] = startTime.split(":").map(Number);
+      startDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+    }
+
+    if (endTime) {
+      const [hours, minutes] = endTime.split(":").map(Number);
+      endDateTime.setHours(hours || 0, minutes || 0, 0, 0);
+    } else {
+      endDateTime.setHours(23, 59, 59, 999);
+    }
+
+    if (endDateTime.getTime() < startDateTime.getTime()) {
       return;
     }
 
@@ -86,14 +173,29 @@ export default function Home() {
       title,
       startDate,
       endDate,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
       source: "custom",
     };
 
     setCustomEvents((previous) => [...previous, newEvent]);
   }
 
+  function requestEventDelete(event: GraduationEvent) {
+    setEventPendingDelete(event);
+  }
+
+  function confirmDeleteEvent() {
+    if (!eventPendingDelete) return;
+
+    setCustomEvents((previous) => previous.filter((event) => event.id !== eventPendingDelete.id));
+    setToastMessage(`Deleted event: ${eventPendingDelete.title}`);
+    setEventPendingDelete(null);
+  }
+
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
+    <>
+      <main className="relative min-h-screen overflow-hidden bg-black text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(99,102,241,0.38),transparent_33%),radial-gradient(circle_at_85%_20%,rgba(168,85,247,0.32),transparent_37%),radial-gradient(circle_at_70%_80%,rgba(37,99,235,0.28),transparent_35%),linear-gradient(145deg,#020617,#09090b_45%,#140b2c)]" />
       <div className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
@@ -114,23 +216,30 @@ export default function Home() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <section className="space-y-4 lg:col-span-2">
-            <CountdownCard countdown={countdown} urgencyTone={urgencyTone} />
-            <TodayPanel events={activeToday} />
+            <div id="tour-countdown">
+              <CountdownCard countdown={countdown} urgencyTone={urgencyTone} />
+            </div>
+            <TodayPanel countdowns={todayCountdowns} />
           </section>
 
           <section className="space-y-4">
             <ProgressCard progress={progress} />
-            <div className="rounded-3xl border border-white/12 bg-white/8 p-5 backdrop-blur-xl">
+            <div id="tour-notifications" className="rounded-3xl border border-white/12 bg-white/8 p-5 backdrop-blur-xl">
               <h2 className="text-sm font-medium uppercase tracking-[0.17em] text-blue-100/70">Notifications</h2>
               <p className="mt-3 text-sm text-blue-100/80">
                 {notificationPermission === "granted" && "Notifications are enabled."}
                 {notificationPermission === "default" &&
-                  "Enable notifications to get alerts for active events."}
+                  "Enable notifications to get alerts for starting and active events."}
                 {notificationPermission === "denied" &&
                   "Notifications are blocked in this browser."}
                 {notificationPermission === "unsupported" &&
                   "This browser does not support notifications."}
               </p>
+              {hasImportantUpcomingOrActiveEvent && notificationPermission !== "granted" ? (
+                <p className="mt-2 rounded-lg border border-amber-300/30 bg-amber-500/15 px-3 py-2 text-xs text-amber-100">
+                  Important events are near or active. Enable notifications for better visibility on mobile.
+                </p>
+              ) : null}
               <button
                 onClick={requestNotificationPermission}
                 type="button"
@@ -139,8 +248,29 @@ export default function Home() {
               >
                 Request Notification Permission
               </button>
+              <p className="mt-2 text-xs text-blue-100/65">
+                Tip: browser notifications work best on mobile when allowed in browser settings.
+              </p>
             </div>
-            <CustomEventForm onAddEvent={handleAddEvent} />
+            <div id="tour-custom-events" className="space-y-4">
+              <CustomEventForm onAddEvent={handleAddEvent} />
+            {showWelcome ? (
+              <div className="rounded-2xl border border-cyan-300/25 bg-cyan-500/10 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-xs leading-relaxed text-cyan-100/90">
+                    Welcome to your Graduation Countdown. Add your own events, manage them anytime, and keep track of everything in one place. Your events stay saved in this browser, even after refreshing the page.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowWelcome(false)}
+                    className="shrink-0 rounded-md border border-cyan-200/30 bg-white/5 px-2 py-1 text-xs text-cyan-100/85 transition hover:bg-white/10"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            </div>
           </section>
         </div>
 
@@ -149,20 +279,49 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.1 }}
           className="mt-6"
+          id="tour-fixed-events"
         >
           <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.17em] text-blue-100/70">Important Events</h2>
+          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-blue-100/55">Milestones</p>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {allEvents.map((event, index) => (
+            {fixedEvents.map((event, index) => (
               <EventCard
                 key={event.id}
                 event={event}
                 index={index}
                 isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                onRequestDelete={requestEventDelete}
               />
             ))}
           </div>
+
+          {sortedCustomEvents.length > 0 ? (
+            <>
+              <p className="mb-2 mt-5 text-xs uppercase tracking-[0.16em] text-blue-100/55">Your Events</p>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {sortedCustomEvents.map((event, index) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    index={index}
+                    isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                    onRequestDelete={requestEventDelete}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
         </motion.section>
       </div>
-    </main>
+      </main>
+
+      <ConfirmDeleteModal
+        open={Boolean(eventPendingDelete)}
+        onCancel={() => setEventPendingDelete(null)}
+        onConfirm={confirmDeleteEvent}
+      />
+      <ToastMessage message={toastMessage} />
+      <OnboardingTour />
+    </>
   );
 }

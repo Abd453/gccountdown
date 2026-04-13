@@ -11,6 +11,8 @@ function isValidEvent(event: unknown): event is GraduationEvent {
     typeof candidate.title === "string" &&
     typeof candidate.startDate === "string" &&
     typeof candidate.endDate === "string" &&
+    (candidate.startTime === undefined || typeof candidate.startTime === "string") &&
+    (candidate.endTime === undefined || typeof candidate.endTime === "string") &&
     candidate.source === "custom"
   );
 }
