@@ -200,15 +200,15 @@ export default function Home() {
       <div className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
       <div className="pointer-events-none absolute -right-16 bottom-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
 
-      <div className="relative mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <div className="relative mx-auto w-full max-w-6xl px-3 py-6 sm:px-6 sm:py-10 lg:px-8">
         <motion.header
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
           className="mb-6"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-blue-100/70">Graduation Journey</p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-5xl">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-blue-100/70 sm:text-xs sm:tracking-[0.3em]">Graduation Journey</p>
+          <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-5xl">
             Countdown to <span className="bg-gradient-to-r from-cyan-300 to-fuchsia-300 bg-clip-text text-transparent">June 20, 2026</span>
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-blue-100/75 sm:text-base">{motivationMessage}</p>
@@ -224,7 +224,7 @@ export default function Home() {
 
           <section className="space-y-4">
             <ProgressCard progress={progress} />
-            <div id="tour-notifications" className="rounded-3xl border border-white/12 bg-white/8 p-5 backdrop-blur-xl">
+            <div id="tour-notifications" className="rounded-3xl border border-white/12 bg-white/8 p-4 backdrop-blur-xl sm:p-5">
               <h2 className="text-sm font-medium uppercase tracking-[0.17em] text-blue-100/70">Notifications</h2>
               <p className="mt-3 text-sm text-blue-100/80">
                 {notificationPermission === "granted" && "Notifications are enabled."}
@@ -243,7 +243,7 @@ export default function Home() {
               <button
                 onClick={requestNotificationPermission}
                 type="button"
-                className="mt-4 rounded-xl border border-cyan-300/45 bg-gradient-to-r from-indigo-500/70 to-cyan-500/70 px-4 py-2 text-sm font-medium text-white transition hover:from-indigo-500 hover:to-cyan-500 disabled:opacity-50"
+                className="mt-4 min-h-11 w-full rounded-xl border border-cyan-300/45 bg-gradient-to-r from-indigo-500/70 to-cyan-500/70 px-4 py-2 text-sm font-medium text-white transition hover:from-indigo-500 hover:to-cyan-500 disabled:opacity-50 sm:w-auto"
                 disabled={notificationPermission === "unsupported"}
               >
                 Request Notification Permission

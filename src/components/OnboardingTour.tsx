@@ -55,6 +55,11 @@ type SpotlightRect = {
   height: number;
 };
 
+type ViewportSize = {
+  width: number;
+  height: number;
+};
+
 export function OnboardingTour() {
   const [isOpen, setIsOpen] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -62,10 +67,28 @@ export function OnboardingTour() {
   });
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
+  const [viewport, setViewport] = useState<ViewportSize>(() => {
+    if (typeof window === "undefined") return { width: 1280, height: 900 };
+    return { width: window.innerWidth, height: window.innerHeight };
+  });
 
   const step = STEPS[stepIndex];
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === STEPS.length - 1;
+  const isWelcomeStep = stepIndex === 0;
+  const isSmallScreen = viewport.width < 640;
+  const isTabletScreen = viewport.width >= 640 && viewport.width < 1100;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    function syncViewport() {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+    }
+
+    window.addEventListener("resize", syncViewport);
+    return () => window.removeEventListener("resize", syncViewport);
+  }, []);
 
   const scrollToTarget = useCallback((targetId?: string) => {
     if (!targetId || typeof window === "undefined") return;
@@ -148,6 +171,26 @@ export function OnboardingTour() {
   const activeSpotlightRect = step.targetId ? spotlightRect : null;
 
   const cardPositionStyle = useMemo(() => {
+    if (isTabletScreen) {
+      return {
+        top: "auto",
+        bottom: 20,
+        left: "50%",
+        right: "auto",
+        transform: "translateX(-50%)",
+      } as const;
+    }
+
+    if (isSmallScreen) {
+      return {
+        top: "auto",
+        bottom: 14,
+        left: 12,
+        right: 12,
+        transform: "none",
+      } as const;
+    }
+
     if (!activeSpotlightRect) {
       return {
         top: "50%",
@@ -156,8 +199,8 @@ export function OnboardingTour() {
       } as const;
     }
 
-    const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
-    const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
+    const viewportHeight = viewport.height;
+    const viewportWidth = viewport.width;
     const cardWidth = Math.min(viewportWidth * 0.9, 480);
     const placeAbove = activeSpotlightRect.top > viewportHeight * 0.62;
     const baseTop = placeAbove
@@ -174,7 +217,7 @@ export function OnboardingTour() {
       left: safeLeft,
       transform: "none",
     } as const;
-  }, [activeSpotlightRect]);
+  }, [activeSpotlightRect, isSmallScreen, isTabletScreen, viewport.height, viewport.width]);
 
   function finishTour() {
     if (typeof window !== "undefined") {
@@ -197,7 +240,7 @@ export function OnboardingTour() {
           <motion.div
             layout
             transition={{ duration: 0.25 }}
-            className="absolute rounded-2xl border border-cyan-300/55"
+            className="absolute rounded-xl border border-cyan-300/55 sm:rounded-2xl"
             style={{
               top: activeSpotlightRect.top,
               left: activeSpotlightRect.left,
@@ -215,16 +258,20 @@ export function OnboardingTour() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="pointer-events-auto absolute w-[min(90vw,30rem)] rounded-2xl border border-white/20 bg-slate-950/95 p-5 shadow-2xl shadow-black/60"
+          className="pointer-events-auto absolute w-[min(92vw,30rem)] max-h-[78vh] overflow-y-auto rounded-2xl border border-white/20 bg-slate-950/95 p-4 shadow-2xl shadow-black/60 sm:w-[min(88vw,34rem)] sm:p-5"
           style={cardPositionStyle}
         >
-          <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-200/70">
+          <p className={`text-[11px] uppercase tracking-[0.2em] text-cyan-200/70 ${isWelcomeStep ? "text-center" : ""}`}>
             Step {stepIndex + 1} of {STEPS.length}
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-white">{step.title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-blue-100/85">{step.description}</p>
+          <h3 className={`mt-2 text-base font-semibold text-white sm:text-lg ${isWelcomeStep ? "text-center" : ""}`}>
+            {step.title}
+          </h3>
+          <p className={`mt-2 text-sm leading-relaxed text-blue-100/85 ${isWelcomeStep ? "text-center" : ""}`}>
+            {step.description}
+          </p>
 
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={finishTour}
@@ -233,7 +280,7 @@ export function OnboardingTour() {
               Skip
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
               <button
                 type="button"
                 onClick={() => goToStep(stepIndex - 1)}

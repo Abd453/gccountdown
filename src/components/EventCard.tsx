@@ -31,11 +31,11 @@ export function EventCard({ event, index, isActiveToday, onRequestDelete }: Even
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-white">{event.title}</h3>
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-semibold text-white">{event.title}</h3>
           <p className="mt-1 text-sm text-blue-100/70">{formatEventRange(event.startDate, event.endDate)}</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex shrink-0 flex-col items-end gap-2">
           {isActiveToday ? (
             <span className="rounded-full border border-fuchsia-300/60 bg-fuchsia-500/20 px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-fuchsia-100">
               Today
