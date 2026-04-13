@@ -1,24 +1,50 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 
 type CustomEventFormProps = {
-  onAddEvent: (title: string, startDate: string, endDate: string) => void;
+  onAddEvent: (
+    title: string,
+    startDate: string,
+    endDate: string,
+    startTime?: string,
+    endTime?: string,
+  ) => void;
 };
 
 export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
   const [title, setTitle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
+
+  function openNativePicker(input: HTMLInputElement | null) {
+    if (!input) return;
+    input.focus();
+
+    if ("showPicker" in input) {
+      input.showPicker();
+    }
+  }
+
+  const pickerInputClassName =
+    "w-full cursor-pointer rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white [color-scheme:dark] outline-none transition focus:border-cyan-300/70 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-200 [&::-webkit-calendar-picker-indicator]:contrast-200 [&::-webkit-calendar-picker-indicator]:opacity-100";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!title || !startDate || !endDate) return;
 
-    onAddEvent(title.trim(), startDate, endDate);
+    onAddEvent(title.trim(), startDate, endDate, startTime || undefined, endTime || undefined);
     setTitle("");
     setStartDate("");
     setEndDate("");
+    setStartTime("");
+    setEndTime("");
   }
 
   return (
@@ -34,18 +60,40 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
         />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
+            ref={startDateRef}
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/70"
+            onClick={() => openNativePicker(startDateRef.current)}
+            className={pickerInputClassName}
             required
           />
           <input
+            ref={endDateRef}
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/70"
+            onClick={() => openNativePicker(endDateRef.current)}
+            className={pickerInputClassName}
             required
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <input
+            ref={startTimeRef}
+            type="time"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+            onClick={() => openNativePicker(startTimeRef.current)}
+            className={pickerInputClassName}
+          />
+          <input
+            ref={endTimeRef}
+            type="time"
+            value={endTime}
+            onChange={(event) => setEndTime(event.target.value)}
+            onClick={() => openNativePicker(endTimeRef.current)}
+            className={pickerInputClassName}
           />
         </div>
       </div>
