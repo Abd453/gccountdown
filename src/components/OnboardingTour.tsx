@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type TourStep = {
   title: string;
@@ -67,9 +67,54 @@ export function OnboardingTour() {
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === STEPS.length - 1;
 
+  const scrollToTarget = useCallback((targetId?: string) => {
+    if (!targetId || typeof window === "undefined") return;
+
+    const tryScroll = (): boolean => {
+      const target = document.getElementById(targetId);
+      if (!target) return false;
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+
+      // A follow-up alignment pass helps on mobile where layout/keyboard shifts can occur.
+      window.setTimeout(() => {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+      }, 260);
+
+      return true;
+    };
+
+    if (tryScroll()) return;
+
+    let attempts = 0;
+    const intervalId = window.setInterval(() => {
+      attempts += 1;
+      if (tryScroll() || attempts >= 6) {
+        window.clearInterval(intervalId);
+      }
+    }, 80);
+  }, []);
+
+  function goToStep(nextIndex: number) {
+    const bounded = Math.min(STEPS.length - 1, Math.max(0, nextIndex));
+    const nextStep = STEPS[bounded];
+    scrollToTarget(nextStep.targetId);
+    setStepIndex(bounded);
+  }
+
   useEffect(() => {
     if (!isOpen) return;
     if (!step.targetId) return;
+
+    scrollToTarget(step.targetId);
 
     function syncSpotlight() {
       const target = document.getElementById(step.targetId ?? "");
@@ -98,7 +143,7 @@ export function OnboardingTour() {
       window.removeEventListener("resize", syncSpotlight);
       window.removeEventListener("scroll", syncSpotlight);
     };
-  }, [isOpen, step.targetId]);
+  }, [isOpen, step.targetId, scrollToTarget]);
 
   const activeSpotlightRect = step.targetId ? spotlightRect : null;
 
@@ -112,13 +157,21 @@ export function OnboardingTour() {
     }
 
     const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 900;
+    const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
+    const cardWidth = Math.min(viewportWidth * 0.9, 480);
     const placeAbove = activeSpotlightRect.top > viewportHeight * 0.62;
+    const baseTop = placeAbove
+      ? Math.max(16, activeSpotlightRect.top - 210)
+      : activeSpotlightRect.top + activeSpotlightRect.height + 14;
+    const safeTop = Math.min(baseTop, Math.max(16, viewportHeight - 230));
+    const safeLeft = Math.min(
+      Math.max(16, activeSpotlightRect.left),
+      Math.max(16, viewportWidth - cardWidth - 16),
+    );
 
     return {
-      top: placeAbove
-        ? Math.max(16, activeSpotlightRect.top - 210)
-        : activeSpotlightRect.top + activeSpotlightRect.height + 14,
-      left: Math.max(16, activeSpotlightRect.left),
+      top: safeTop,
+      left: safeLeft,
       transform: "none",
     } as const;
   }, [activeSpotlightRect]);
@@ -183,7 +236,7 @@ export function OnboardingTour() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setStepIndex((previous) => Math.max(0, previous - 1))}
+                onClick={() => goToStep(stepIndex - 1)}
                 className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs text-blue-100/90 transition hover:bg-white/10 disabled:opacity-45"
                 disabled={isFirst}
               >
@@ -196,7 +249,7 @@ export function OnboardingTour() {
                     finishTour();
                     return;
                   }
-                  setStepIndex((previous) => Math.min(STEPS.length - 1, previous + 1));
+                  goToStep(stepIndex + 1);
                 }}
                 className="rounded-lg border border-cyan-300/45 bg-gradient-to-r from-indigo-500/75 to-cyan-500/75 px-3 py-2 text-xs font-medium text-white transition hover:from-indigo-500 hover:to-cyan-500"
               >
