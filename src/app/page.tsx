@@ -256,14 +256,14 @@ export default function Home() {
               <CustomEventForm onAddEvent={handleAddEvent} />
             {showWelcome ? (
               <div className="rounded-2xl border border-cyan-300/25 bg-cyan-500/10 p-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <p className="text-xs leading-relaxed text-cyan-100/90">
                     Welcome to your Graduation Countdown. Add your own events, manage them anytime, and keep track of everything in one place. Your events stay saved in this browser, even after refreshing the page.
                   </p>
                   <button
                     type="button"
                     onClick={() => setShowWelcome(false)}
-                    className="shrink-0 rounded-md border border-cyan-200/30 bg-white/5 px-2 py-1 text-xs text-cyan-100/85 transition hover:bg-white/10"
+                    className="w-full rounded-md border border-cyan-200/30 bg-white/5 px-2 py-1.5 text-xs text-cyan-100/85 transition hover:bg-white/10 sm:w-auto"
                   >
                     Dismiss
                   </button>
