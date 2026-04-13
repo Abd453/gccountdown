@@ -24,7 +24,7 @@ export function ConfirmDeleteModal({ open, onCancel, onConfirm }: ConfirmDeleteM
           >
             <h3 className="text-base font-semibold text-white">Confirm Deletion</h3>
             <p className="mt-2 text-sm text-blue-100/80">Are you sure you want to delete this event?</p>
-            <div className="mt-5 flex justify-end gap-2">
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={onCancel}
