@@ -15,6 +15,8 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Graduation Countdown",
   description: "A modern countdown and planner for the journey to graduation day.",
+  authors: [{ name: "Abdallah Abdurazak" }],
+  applicationName: "Graduation Countdown",
 };
 
 export default function RootLayout({
@@ -27,7 +29,16 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-black text-white">
+        <div className="flex min-h-screen flex-col">
+          <div className="flex-1">{children}</div>
+          <footer className="border-t border-white/10 bg-black/80 px-4 py-4 text-center backdrop-blur-xl sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-6xl">
+              <p className="text-xs text-blue-100/65 sm:text-sm">© 2026 Abdallah Abdurazak. All rights reserved.</p>
+            </div>
+          </footer>
+        </div>
+      </body>
     </html>
   );
 }

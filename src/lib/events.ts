@@ -16,10 +16,20 @@ export type TodayEventCountdown = {
 
 export const PREDEFINED_EVENTS: GraduationEvent[] = [
   {
+    id: "exit-exam-model",
+    title: "Exit Exam Model",
+    startDate: "2026-04-17",
+    endDate: "2026-04-17",
+    detailsUrl: "https://t.me/student_Union1/2186",
+    source: "system",
+  },
+  
+  {
     id: "final-exams",
     title: "Final Exams",
     startDate: "2026-05-11",
     endDate: "2026-05-22",
+    detailsUrl: "/milestone-info/final-exams",
     source: "system",
   },
   {
@@ -27,6 +37,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     title: "Thesis Defense",
     startDate: "2026-05-18",
     endDate: "2026-05-22",
+    detailsUrl: "/milestone-info/thesis-defense",
     source: "system",
   },
   {
@@ -34,6 +45,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     title: "Exit Exam",
     startDate: "2026-06-10",
     endDate: "2026-06-17",
+    detailsUrl: "/milestone-info/exit-exam",
     source: "system",
   },
   {
@@ -41,6 +53,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     title: "Graduation Day",
     startDate: "2026-06-20",
     endDate: "2026-06-20",
+    detailsUrl: "/milestone-info/graduation-day",
     source: "system",
   },
 ];

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { formatEventRange, getDaysUntil, getUrgencyTone, parseLocalDate } from "@/lib/events";
 import type { GraduationEvent } from "@/lib/types";
@@ -18,6 +19,8 @@ const urgencyStyles = {
 export function EventCard({ event, index, isActiveToday, onRequestDelete }: EventCardProps) {
   const daysUntilStart = getDaysUntil(parseLocalDate(event.startDate));
   const tone = getUrgencyTone(daysUntilStart);
+  const isExternalInfoLink =
+    typeof event.detailsUrl === "string" && /^https?:\/\//i.test(event.detailsUrl);
 
   return (
     <motion.article
@@ -49,6 +52,25 @@ export function EventCard({ event, index, isActiveToday, onRequestDelete }: Even
             >
               Delete
             </button>
+          ) : null}
+          {event.source === "system" && event.detailsUrl ? (
+            isExternalInfoLink ? (
+              <a
+                href={event.detailsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-cyan-300/35 bg-cyan-500/15 px-2 py-1 text-xs font-medium text-cyan-100 transition hover:bg-cyan-500/25"
+              >
+                Info
+              </a>
+            ) : (
+              <Link
+                href={event.detailsUrl}
+                className="rounded-lg border border-cyan-300/35 bg-cyan-500/15 px-2 py-1 text-xs font-medium text-cyan-100 transition hover:bg-cyan-500/25"
+              >
+                Info
+              </Link>
+            )
           ) : null}
         </div>
       </div>
