@@ -7,6 +7,10 @@ type TourStep = {
   title: string;
   description: string;
   targetId?: string;
+  link?: {
+    text: string;
+    url: string;
+  };
 };
 
 const STORAGE_KEY = "graduation-tour-completed";
@@ -44,7 +48,11 @@ const STEPS: TourStep[] = [
   {
     title: "You Are Ready",
     description:
-      "You are all set. Start adding your events and keep your graduation journey organized and focused.",
+      "You are all set. Start adding your events and keep your graduation journey organized and focused. We'd love your support!",
+    link: {
+      text: "⭐ Show love & Star on GitHub",
+      url: "https://github.com/Abd453/gccountdown",
+    },
   },
 ];
 
@@ -288,9 +296,20 @@ export function OnboardingTour() {
               {step.title}
             </h3>
             
-            <p className={`mt-3 text-[15px] leading-relaxed text-blue-50/90 ${isWelcomeStep ? "text-center" : ""}`}>
+            <p className={`mt-3 text-[15px] leading-relaxed text-blue-50/90 ${isWelcomeStep || isLast ? "text-center" : ""}`}>
               {step.description}
             </p>
+
+            {step.link && (
+              <a
+                href={step.link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-sm font-semibold text-yellow-200 transition hover:bg-yellow-400/20"
+              >
+                {step.link.text}
+              </a>
+            )}
 
           <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
