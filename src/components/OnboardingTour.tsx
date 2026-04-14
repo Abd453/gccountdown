@@ -7,10 +7,6 @@ type TourStep = {
   title: string;
   description: string;
   targetId?: string;
-  link?: {
-    text: string;
-    url: string;
-  };
 };
 
 const STORAGE_KEY = "graduation-tour-completed";
@@ -48,11 +44,7 @@ const STEPS: TourStep[] = [
   {
     title: "You Are Ready",
     description:
-      "You are all set. Start adding your events and keep your graduation journey organized and focused. We'd love your support!",
-    link: {
-      text: "⭐ Show love & Star on GitHub",
-      url: "https://github.com/Abd453/gccountdown",
-    },
+      "You are all set. Start adding your events and keep your graduation journey organized and focused.",
   },
 ];
 
@@ -112,7 +104,7 @@ export function OnboardingTour() {
     const rect = target.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const clientHeight = window.innerHeight;
-    
+
     // Calculate position to center the element in the viewport
     const targetTop = rect.top + scrollTop - (clientHeight / 2) + (rect.height / 2);
 
@@ -125,10 +117,10 @@ export function OnboardingTour() {
     window.setTimeout(() => {
       const updatedTarget = document.getElementById(targetId);
       if (!updatedTarget) return;
-      
+
       const newRect = updatedTarget.getBoundingClientRect();
       const isCentered = Math.abs(newRect.top + newRect.height / 2 - clientHeight / 2) < 50;
-      
+
       if (!isCentered) {
         updatedTarget.scrollIntoView({
           behavior: "smooth",
@@ -147,7 +139,7 @@ export function OnboardingTour() {
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     // Always apply scroll logic when step changes
     scrollToTarget(step.targetId);
 
@@ -212,13 +204,13 @@ export function OnboardingTour() {
     const viewportWidth = viewport.width;
     const cardWidth = 440;
     const estimatedCardHeight = 220;
-    
+
     const spaceBelow = viewportHeight - (activeSpotlightRect.top + activeSpotlightRect.height);
     const spaceAbove = activeSpotlightRect.top;
-    
+
     // Default to placing below if there's enough space, otherwise above
     const placeAbove = spaceBelow < estimatedCardHeight + 40 && spaceAbove > spaceBelow;
-    
+
     let top: number;
     if (placeAbove) {
       top = activeSpotlightRect.top - estimatedCardHeight - 24;
@@ -291,62 +283,51 @@ export function OnboardingTour() {
                 Step {stepIndex + 1} of {STEPS.length}
               </p>
             </div>
-            
+
             <h3 className={`mt-3 text-lg font-bold text-white sm:text-xl ${isWelcomeStep ? "text-center" : ""}`}>
               {step.title}
             </h3>
-            
-            <p className={`mt-3 text-[15px] leading-relaxed text-blue-50/90 ${isWelcomeStep || isLast ? "text-center" : ""}`}>
+
+            <p className={`mt-3 text-[15px] leading-relaxed text-blue-50/90 ${isWelcomeStep ? "text-center" : ""}`}>
               {step.description}
             </p>
 
-            {step.link && (
-              <a
-                href={step.link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-sm font-semibold text-yellow-200 transition hover:bg-yellow-400/20"
-              >
-                {step.link.text}
-              </a>
-            )}
-
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={finishTour}
-              className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs text-blue-100/90 transition hover:bg-white/10"
-            >
-              Skip
-            </button>
-
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                onClick={() => goToStep(stepIndex - 1)}
-                className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs text-blue-100/90 transition hover:bg-white/10 disabled:opacity-45"
-                disabled={isFirst}
+                onClick={finishTour}
+                className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs text-blue-100/90 transition hover:bg-white/10"
               >
-                Back
+                Skip
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (isLast) {
-                    finishTour();
-                    return;
-                  }
-                  goToStep(stepIndex + 1);
-                }}
-                className="rounded-lg border border-cyan-300/45 bg-gradient-to-r from-indigo-500/75 to-cyan-500/75 px-3 py-2 text-xs font-medium text-white transition hover:from-indigo-500 hover:to-cyan-500"
-              >
-                {isLast ? "Finish" : "Next"}
-              </button>
+
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                <button
+                  type="button"
+                  onClick={() => goToStep(stepIndex - 1)}
+                  className="rounded-lg border border-white/25 bg-white/5 px-3 py-2 text-xs text-blue-100/90 transition hover:bg-white/10 disabled:opacity-45"
+                  disabled={isFirst}
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isLast) {
+                      finishTour();
+                      return;
+                    }
+                    goToStep(stepIndex + 1);
+                  }}
+                  className="rounded-lg border border-cyan-300/45 bg-gradient-to-r from-indigo-500/75 to-cyan-500/75 px-3 py-2 text-xs font-medium text-white transition hover:from-indigo-500 hover:to-cyan-500"
+                >
+                  {isLast ? "Finish" : "Next"}
+                </button>
+              </div>
             </div>
-          </div>
-        </motion.section>
-      </div>
-    </motion.div>
-  </AnimatePresence>
-);
+          </motion.section>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
 }

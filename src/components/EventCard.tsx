@@ -27,11 +27,10 @@ export function EventCard({ event, index, isActiveToday, onRequestDelete }: Even
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.06 * index }}
-      className={`group rounded-2xl border bg-white/8 p-4 backdrop-blur-lg ${
-        isActiveToday
+      className={`group rounded-2xl border bg-white/8 p-4 backdrop-blur-lg ${isActiveToday
           ? "border-fuchsia-300/70 shadow-lg shadow-fuchsia-500/30"
           : "border-white/12 shadow-md shadow-black/30"
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
