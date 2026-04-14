@@ -77,7 +77,7 @@ export function OnboardingTour() {
   const isLast = stepIndex === STEPS.length - 1;
   const isWelcomeStep = stepIndex === 0;
   const isSmallScreen = viewport.width < 640;
-  const isTabletScreen = viewport.width >= 640 && viewport.width < 1100;
+  const isModalStep = !step.targetId;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -91,39 +91,43 @@ export function OnboardingTour() {
   }, []);
 
   const scrollToTarget = useCallback((targetId?: string) => {
-    if (!targetId || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
 
-    const tryScroll = (): boolean => {
-      const target = document.getElementById(targetId);
-      if (!target) return false;
+    if (!targetId) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "nearest",
-      });
+    const target = document.getElementById(targetId);
+    if (!target) return;
 
-      // A follow-up alignment pass helps on mobile where layout/keyboard shifts can occur.
-      window.setTimeout(() => {
-        target.scrollIntoView({
+    const rect = target.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const clientHeight = window.innerHeight;
+    
+    // Calculate position to center the element in the viewport
+    const targetTop = rect.top + scrollTop - (clientHeight / 2) + (rect.height / 2);
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: "smooth",
+    });
+
+    // Verification and adjustment pass
+    window.setTimeout(() => {
+      const updatedTarget = document.getElementById(targetId);
+      if (!updatedTarget) return;
+      
+      const newRect = updatedTarget.getBoundingClientRect();
+      const isCentered = Math.abs(newRect.top + newRect.height / 2 - clientHeight / 2) < 50;
+      
+      if (!isCentered) {
+        updatedTarget.scrollIntoView({
           behavior: "smooth",
           block: "center",
-          inline: "nearest",
         });
-      }, 260);
-
-      return true;
-    };
-
-    if (tryScroll()) return;
-
-    let attempts = 0;
-    const intervalId = window.setInterval(() => {
-      attempts += 1;
-      if (tryScroll() || attempts >= 6) {
-        window.clearInterval(intervalId);
       }
-    }, 80);
+    }, 450);
   }, []);
 
   function goToStep(nextIndex: number) {
@@ -135,9 +139,14 @@ export function OnboardingTour() {
 
   useEffect(() => {
     if (!isOpen) return;
-    if (!step.targetId) return;
-
+    
+    // Always apply scroll logic when step changes
     scrollToTarget(step.targetId);
+
+    if (!step.targetId) {
+      setSpotlightRect(null);
+      return;
+    }
 
     function syncSpotlight() {
       const target = document.getElementById(step.targetId ?? "");
@@ -147,7 +156,7 @@ export function OnboardingTour() {
       }
 
       const rect = target.getBoundingClientRect();
-      const padding = 10;
+      const padding = 12;
 
       setSpotlightRect({
         top: Math.max(8, rect.top - padding),
@@ -156,6 +165,9 @@ export function OnboardingTour() {
         height: rect.height + padding * 2,
       });
     }
+
+    // Immediate sync
+    syncSpotlight();
 
     const frameId = window.requestAnimationFrame(syncSpotlight);
     window.addEventListener("resize", syncSpotlight);
@@ -166,58 +178,61 @@ export function OnboardingTour() {
       window.removeEventListener("resize", syncSpotlight);
       window.removeEventListener("scroll", syncSpotlight);
     };
-  }, [isOpen, step.targetId, scrollToTarget]);
+  }, [isOpen, stepIndex, step.targetId, scrollToTarget]);
 
   const activeSpotlightRect = step.targetId ? spotlightRect : null;
 
   const cardPositionStyle = useMemo(() => {
-    if (isTabletScreen) {
-      return {
-        top: "auto",
-        bottom: 20,
-        left: "50%",
-        right: "auto",
-        transform: "translateX(-50%)",
-      } as const;
+    if (isModalStep) {
+      return {} as const; // Managed by container
     }
 
     if (isSmallScreen) {
       return {
-        top: "auto",
-        bottom: 14,
-        left: 12,
-        right: 12,
+        position: "fixed",
+        bottom: 24,
+        left: 16,
+        right: 16,
+        width: "auto",
         transform: "none",
       } as const;
     }
 
-    if (!activeSpotlightRect) {
-      return {
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-      } as const;
-    }
+    if (!activeSpotlightRect) return {} as const;
 
     const viewportHeight = viewport.height;
     const viewportWidth = viewport.width;
-    const cardWidth = Math.min(viewportWidth * 0.9, 480);
-    const placeAbove = activeSpotlightRect.top > viewportHeight * 0.62;
-    const baseTop = placeAbove
-      ? Math.max(16, activeSpotlightRect.top - 210)
-      : activeSpotlightRect.top + activeSpotlightRect.height + 14;
-    const safeTop = Math.min(baseTop, Math.max(16, viewportHeight - 230));
-    const safeLeft = Math.min(
-      Math.max(16, activeSpotlightRect.left),
-      Math.max(16, viewportWidth - cardWidth - 16),
-    );
+    const cardWidth = 440;
+    const estimatedCardHeight = 220;
+    
+    const spaceBelow = viewportHeight - (activeSpotlightRect.top + activeSpotlightRect.height);
+    const spaceAbove = activeSpotlightRect.top;
+    
+    // Default to placing below if there's enough space, otherwise above
+    const placeAbove = spaceBelow < estimatedCardHeight + 40 && spaceAbove > spaceBelow;
+    
+    let top: number;
+    if (placeAbove) {
+      top = activeSpotlightRect.top - estimatedCardHeight - 24;
+    } else {
+      top = activeSpotlightRect.top + activeSpotlightRect.height + 24;
+    }
+
+    // Clamp top position
+    top = Math.max(20, Math.min(top, viewportHeight - estimatedCardHeight - 40));
+
+    // Align horizontally with the spotlight, but stay in viewport
+    let left = activeSpotlightRect.left + (activeSpotlightRect.width / 2) - (cardWidth / 2);
+    left = Math.max(20, Math.min(left, viewportWidth - cardWidth - 20));
 
     return {
-      top: safeTop,
-      left: safeLeft,
+      position: "fixed",
+      top,
+      left,
+      width: cardWidth,
       transform: "none",
     } as const;
-  }, [activeSpotlightRect, isSmallScreen, isTabletScreen, viewport.height, viewport.width]);
+  }, [activeSpotlightRect, isModalStep, isSmallScreen, viewport.height, viewport.width]);
 
   function finishTour() {
     if (typeof window !== "undefined") {
@@ -253,23 +268,29 @@ export function OnboardingTour() {
           <div className="absolute inset-0 bg-slate-950/80" />
         )}
 
-        <motion.section
-          key={stepIndex}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22 }}
-          className="pointer-events-auto absolute w-[min(92vw,30rem)] max-h-[78vh] overflow-y-auto rounded-2xl border border-white/20 bg-slate-950/95 p-4 shadow-2xl shadow-black/60 sm:w-[min(88vw,34rem)] sm:p-5"
-          style={cardPositionStyle}
-        >
-          <p className={`text-[11px] uppercase tracking-[0.2em] text-cyan-200/70 ${isWelcomeStep ? "text-center" : ""}`}>
-            Step {stepIndex + 1} of {STEPS.length}
-          </p>
-          <h3 className={`mt-2 text-base font-semibold text-white sm:text-lg ${isWelcomeStep ? "text-center" : ""}`}>
-            {step.title}
-          </h3>
-          <p className={`mt-2 text-sm leading-relaxed text-blue-100/85 ${isWelcomeStep ? "text-center" : ""}`}>
-            {step.description}
-          </p>
+        <div className={`pointer-events-none fixed inset-0 z-[80] flex p-4 ${isModalStep ? "items-center justify-center" : "items-start justify-start"}`}>
+          <motion.section
+            key={stepIndex}
+            initial={{ opacity: 0, scale: 0.92, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="pointer-events-auto relative flex max-h-[85vh] w-full max-w-[min(92vw,440px)] flex-col overflow-y-auto rounded-3xl border border-white/20 bg-slate-950/95 p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl sm:p-7"
+            style={cardPositionStyle}
+          >
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-400/80 ${isWelcomeStep ? "w-full text-center" : ""}`}>
+                Step {stepIndex + 1} of {STEPS.length}
+              </p>
+            </div>
+            
+            <h3 className={`mt-3 text-lg font-bold text-white sm:text-xl ${isWelcomeStep ? "text-center" : ""}`}>
+              {step.title}
+            </h3>
+            
+            <p className={`mt-3 text-[15px] leading-relaxed text-blue-50/90 ${isWelcomeStep ? "text-center" : ""}`}>
+              {step.description}
+            </p>
 
           <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
@@ -305,7 +326,8 @@ export function OnboardingTour() {
             </div>
           </div>
         </motion.section>
-      </motion.div>
-    </AnimatePresence>
-  );
+      </div>
+    </motion.div>
+  </AnimatePresence>
+);
 }
