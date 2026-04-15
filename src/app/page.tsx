@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
+import { EditEventModal } from "@/components/EditEventModal";
 import { CountdownCard } from "@/components/CountdownCard";
 import { CustomEventForm } from "@/components/CustomEventForm";
 import { EventCard } from "@/components/EventCard";
@@ -35,6 +36,7 @@ export default function Home() {
   const countdown = useCountdown(GRADUATION_DATE);
   const [customEvents, setCustomEvents] = useState<GraduationEvent[]>(() => loadCustomEvents());
   const [eventPendingDelete, setEventPendingDelete] = useState<GraduationEvent | null>(null);
+  const [eventPendingEdit, setEventPendingEdit] = useState<GraduationEvent | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [notificationPermission, setNotificationPermission] =
@@ -193,6 +195,18 @@ export default function Home() {
     setEventPendingDelete(null);
   }
 
+  function requestEventEdit(event: GraduationEvent) {
+    setEventPendingEdit(event);
+  }
+
+  function confirmEditEvent(updated: GraduationEvent) {
+    setCustomEvents((previous) =>
+      previous.map((event) => (event.id === updated.id ? updated : event)),
+    );
+    setToastMessage(`Updated event: ${updated.title}`);
+    setEventPendingEdit(null);
+  }
+
   return (
     <>
       <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -306,43 +320,51 @@ export default function Home() {
                       index={index}
                       isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
                       onRequestDelete={requestEventDelete}
+                      onRequestEdit={requestEventEdit}
                     />
                   ))}
                 </div>
               </>
             ) : null}
+          </motion.section>
+
           <footer className="mt-20 block border-t border-white/5 pb-10 pt-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <div className="text-center sm:text-left">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-100/40">Open Source Project</p>
-              <p className="mt-1 text-xs text-blue-100/60">© 2026 GC Countdown. Built for the graduating class.</p>
+            <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+              <div className="text-center sm:text-left">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-100/40">Open Source Project</p>
+                <p className="mt-1 text-xs text-blue-100/60">© 2026 GC Countdown. Built for the graduating class.</p>
+              </div>
+              
+              <div className="flex flex-col items-center gap-4 sm:items-end">
+                <p className="text-center text-sm text-blue-100/80 sm:text-right">
+                  Show some love by starring the repo! 🚀
+                </p>
+                <a
+                  href="https://github.com/Abd453/gccountdown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-2.5 text-sm font-semibold text-yellow-200 transition-all hover:bg-yellow-400/20 hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]"
+                >
+                  <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                  </svg>
+                  Star on GitHub
+                </a>
+              </div>
             </div>
-            
-            <div className="flex flex-col items-center gap-4 sm:items-end">
-              <p className="text-center text-sm text-blue-100/80 sm:text-right">
-                Show some love by starring the repo! 🚀
-              </p>
-              <a
-                href="https://github.com/Abd453/gccountdown"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-2.5 text-sm font-semibold text-yellow-200 transition-all hover:bg-yellow-400/20 hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]"
-              >
-                <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                </svg>
-                Star on GitHub
-              </a>
-            </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
       </main>
 
       <ConfirmDeleteModal
         open={Boolean(eventPendingDelete)}
         onCancel={() => setEventPendingDelete(null)}
         onConfirm={confirmDeleteEvent}
+      />
+      <EditEventModal
+        event={eventPendingEdit}
+        onCancel={() => setEventPendingEdit(null)}
+        onSave={confirmEditEvent}
       />
       <ToastMessage message={toastMessage} />
       <OnboardingTour />

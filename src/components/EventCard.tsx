@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { formatEventRange, getDaysUntil, getUrgencyTone, parseLocalDate } from "@/lib/events";
 import type { GraduationEvent } from "@/lib/types";
 
@@ -8,6 +11,7 @@ type EventCardProps = {
   index: number;
   isActiveToday: boolean;
   onRequestDelete?: (event: GraduationEvent) => void;
+  onRequestEdit?: (event: GraduationEvent) => void;
 };
 
 const urgencyStyles = {
@@ -16,11 +20,28 @@ const urgencyStyles = {
   red: "text-rose-300",
 };
 
-export function EventCard({ event, index, isActiveToday, onRequestDelete }: EventCardProps) {
+export function EventCard({ event, index, isActiveToday, onRequestDelete, onRequestEdit }: EventCardProps) {
   const daysUntilStart = getDaysUntil(parseLocalDate(event.startDate));
   const tone = getUrgencyTone(daysUntilStart);
   const isExternalInfoLink =
     typeof event.detailsUrl === "string" && /^https?:\/\//i.test(event.detailsUrl);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   return (
     <motion.article
@@ -43,15 +64,73 @@ export function EventCard({ event, index, isActiveToday, onRequestDelete }: Even
               Today
             </span>
           ) : null}
-          {event.source === "custom" && onRequestDelete ? (
-            <button
-              type="button"
-              onClick={() => onRequestDelete(event)}
-              className="rounded-lg border border-rose-300/40 bg-rose-500/15 px-2 py-1 text-xs font-medium text-rose-100 transition duration-200 md:translate-y-1 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 hover:bg-rose-500/25"
-            >
-              Delete
-            </button>
+
+          {/* 3-dot kebab menu — custom events only */}
+          {event.source === "custom" && (onRequestDelete || onRequestEdit) ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                aria-label="Event options"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-white/8 text-blue-100/70 transition hover:border-white/30 hover:bg-white/15 hover:text-white"
+              >
+                {/* Three vertical dots */}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                  <circle cx="7" cy="2.5" r="1.4" />
+                  <circle cx="7" cy="7" r="1.4" />
+                  <circle cx="7" cy="11.5" r="1.4" />
+                </svg>
+              </button>
+
+              {menuOpen ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-9 z-50 min-w-[120px] overflow-hidden rounded-xl border border-white/15 bg-[#12111a] shadow-xl shadow-black/50"
+                >
+                  {onRequestEdit ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onRequestEdit(event);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-blue-100/85 transition hover:bg-white/10 hover:text-white"
+                    >
+                      {/* Pencil icon */}
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M11.5 2.5a2.121 2.121 0 0 1 3 3L5 15H1v-4L11.5 2.5z" />
+                      </svg>
+                      Edit
+                    </button>
+                  ) : null}
+                  {onRequestDelete ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onRequestDelete(event);
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-rose-300/85 transition hover:bg-rose-500/15 hover:text-rose-200"
+                    >
+                      {/* Trash icon */}
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="2 4 14 4" />
+                        <path d="M5 4V2h6v2" />
+                        <rect x="3" y="4" width="10" height="10" rx="1" />
+                        <line x1="6" y1="7" x2="6" y2="11" />
+                        <line x1="10" y1="7" x2="10" y2="11" />
+                      </svg>
+                      Delete
+                    </button>
+                  ) : null}
+                </motion.div>
+              ) : null}
+            </div>
           ) : null}
+
+          {/* Info link — system events only */}
           {event.source === "system" && event.detailsUrl ? (
             isExternalInfoLink ? (
               <a
