@@ -4,9 +4,17 @@ type ConfirmDeleteModalProps = {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  title?: string;
+  message?: string;
 };
 
-export function ConfirmDeleteModal({ open, onCancel, onConfirm }: ConfirmDeleteModalProps) {
+export function ConfirmDeleteModal({
+  open,
+  onCancel,
+  onConfirm,
+  title = "Confirm Deletion",
+  message = "Are you sure you want to delete this event?",
+}: ConfirmDeleteModalProps) {
   return (
     <AnimatePresence>
       {open ? (
@@ -22,8 +30,8 @@ export function ConfirmDeleteModal({ open, onCancel, onConfirm }: ConfirmDeleteM
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/95 p-5 shadow-2xl shadow-black/50"
           >
-            <h3 className="text-base font-semibold text-white">Confirm Deletion</h3>
-            <p className="mt-2 text-sm text-blue-100/80">Are you sure you want to delete this event?</p>
+            <h3 className="text-base font-semibold text-white">{title}</h3>
+            <p className="mt-2 text-sm text-blue-100/80">{message}</p>
             <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"

@@ -44,6 +44,10 @@ export default function Home() {
   const customSectionRef = useRef<HTMLDivElement>(null);
   const fixedSectionRef = useRef<HTMLDivElement>(null);
   const MOBILE_CARD_LIMIT = 3;
+  // bulk-select
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission | "unsupported">(() => {
       if (typeof window === "undefined") return "default";
@@ -212,6 +216,29 @@ export default function Home() {
     setEventPendingEdit(null);
   }
 
+  // --- bulk select helpers ---
+  function toggleSelectEvent(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function exitSelectionMode() {
+    setIsSelectionMode(false);
+    setSelectedIds(new Set());
+  }
+
+  function confirmBulkDelete() {
+    setCustomEvents((prev) => prev.filter((e) => !selectedIds.has(e.id)));
+    const count = selectedIds.size;
+    setToastMessage(`Deleted ${count} event${count !== 1 ? "s" : ""}`);
+    setShowBulkConfirm(false);
+    exitSelectionMode();
+  }
+
   return (
     <>
       <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -360,7 +387,69 @@ export default function Home() {
             {/* Custom (Your) events */}
             {sortedCustomEvents.length > 0 ? (
               <>
-                <p className="mb-2 mt-5 text-xs uppercase tracking-[0.16em] text-blue-100/55">Your Events</p>
+                {/* Your Events header row */}
+                <div className="mb-2 mt-5 flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.16em] text-blue-100/55">Your Events</p>
+                  <div className="flex items-center gap-2">
+                    {isSelectionMode ? (
+                      <>
+                        {/* Select all toggle */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (selectedIds.size === sortedCustomEvents.length) {
+                              setSelectedIds(new Set());
+                            } else {
+                              setSelectedIds(new Set(sortedCustomEvents.map((e) => e.id)));
+                            }
+                          }}
+                          className="text-xs text-blue-100/70 transition hover:text-white"
+                        >
+                          {selectedIds.size === sortedCustomEvents.length ? "Deselect all" : "Select all"}
+                        </button>
+                        <span className="text-white/20">|</span>
+                        {/* Delete selected */}
+                        <button
+                          type="button"
+                          disabled={selectedIds.size === 0}
+                          onClick={() => setShowBulkConfirm(true)}
+                          className="flex items-center gap-1.5 rounded-lg border border-rose-400/40 bg-rose-500/20 px-3 py-1 text-xs font-medium text-rose-200 transition hover:bg-rose-500/30 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <polyline points="2 4 14 4" />
+                            <path d="M5 4V2h6v2" />
+                            <rect x="3" y="4" width="10" height="10" rx="1" />
+                          </svg>
+                          Delete{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+                        </button>
+                        {/* Cancel selection */}
+                        <button
+                          type="button"
+                          onClick={exitSelectionMode}
+                          className="rounded-lg border border-white/15 bg-white/5 px-3 py-1 text-xs text-blue-100/70 transition hover:bg-white/10 hover:text-white"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      /* Enter selection mode */
+                      <button
+                        type="button"
+                        onClick={() => setIsSelectionMode(true)}
+                        className="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1 text-xs text-blue-100/70 transition hover:border-cyan-300/30 hover:bg-white/10 hover:text-white"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                          <rect x="1" y="1" width="5" height="5" rx="1" />
+                          <rect x="8" y="1" width="5" height="5" rx="1" />
+                          <rect x="1" y="8" width="5" height="5" rx="1" />
+                          <rect x="8" y="8" width="5" height="5" rx="1" />
+                        </svg>
+                        Select
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div ref={customSectionRef} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
                   {sortedCustomEvents
                     .slice(0, showAllCustom ? sortedCustomEvents.length : MOBILE_CARD_LIMIT)
@@ -372,6 +461,9 @@ export default function Home() {
                         isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
                         onRequestDelete={requestEventDelete}
                         onRequestEdit={requestEventEdit}
+                        isSelectionMode={isSelectionMode}
+                        isSelected={selectedIds.has(event.id)}
+                        onToggleSelect={toggleSelectEvent}
                       />
                     ))}
                   {/* Always show remaining on md+ */}
@@ -383,6 +475,9 @@ export default function Home() {
                         isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
                         onRequestDelete={requestEventDelete}
                         onRequestEdit={requestEventEdit}
+                        isSelectionMode={isSelectionMode}
+                        isSelected={selectedIds.has(event.id)}
+                        onToggleSelect={toggleSelectEvent}
                       />
                     </div>
                   ))}
@@ -457,6 +552,13 @@ export default function Home() {
         open={Boolean(eventPendingDelete)}
         onCancel={() => setEventPendingDelete(null)}
         onConfirm={confirmDeleteEvent}
+      />
+      <ConfirmDeleteModal
+        open={showBulkConfirm}
+        title={`Delete ${selectedIds.size} event${selectedIds.size !== 1 ? "s" : ""}`}
+        message={`This will permanently remove ${selectedIds.size} selected event${selectedIds.size !== 1 ? "s" : ""}. This action cannot be undone.`}
+        onCancel={() => setShowBulkConfirm(false)}
+        onConfirm={confirmBulkDelete}
       />
       <EditEventModal
         event={eventPendingEdit}
