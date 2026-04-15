@@ -33,7 +33,7 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
   }
 
   const pickerInputClassName =
-    "w-full min-h-11 cursor-pointer rounded-xl border border-white/15 bg-black/30 px-3 py-3 text-sm text-white [color-scheme:dark] outline-none transition focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-300/20 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-200 [&::-webkit-calendar-picker-indicator]:contrast-200 [&::-webkit-calendar-picker-indicator]:opacity-100";
+    "w-full min-h-11 cursor-pointer rounded-xl border border-white/15 bg-black/30 px-3 py-3 text-sm text-white [color-scheme:dark] outline-none transition focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-300/20 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-200 [&::-webkit-calendar-picker-indicator]:contrast-200 [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-datetime-edit]:text-white [&::-webkit-datetime-edit-fields-wrapper]:text-white [&::-webkit-datetime-edit-text]:text-white [&::-webkit-datetime-edit-month-field]:text-white [&::-webkit-datetime-edit-day-field]:text-white [&::-webkit-datetime-edit-year-field]:text-white [&::-webkit-datetime-edit-hour-field]:text-white [&::-webkit-datetime-edit-minute-field]:text-white [&::-webkit-datetime-edit-ampm-field]:text-white";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,6 +68,7 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
               onChange={(event) => setStartDate(event.target.value)}
               onClick={() => openNativePicker(startDateRef.current)}
               className={pickerInputClassName}
+              style={{ color: "white" }}
               required
             />
           </label>
@@ -80,6 +81,7 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
               onChange={(event) => setEndDate(event.target.value)}
               onClick={() => openNativePicker(endDateRef.current)}
               className={pickerInputClassName}
+              style={{ color: "white" }}
               required
             />
           </label>
@@ -94,6 +96,7 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
               onChange={(event) => setStartTime(event.target.value)}
               onClick={() => openNativePicker(startTimeRef.current)}
               className={pickerInputClassName}
+              style={{ color: "white" }}
             />
           </label>
           <label className="space-y-1.5">
@@ -105,6 +108,7 @@ export function CustomEventForm({ onAddEvent }: CustomEventFormProps) {
               onChange={(event) => setEndTime(event.target.value)}
               onClick={() => openNativePicker(endTimeRef.current)}
               className={pickerInputClassName}
+              style={{ color: "white" }}
             />
           </label>
         </div>
