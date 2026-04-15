@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { EditEventModal } from "@/components/EditEventModal";
 import { CountdownCard } from "@/components/CountdownCard";
@@ -39,6 +39,11 @@ export default function Home() {
   const [eventPendingEdit, setEventPendingEdit] = useState<GraduationEvent | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showAllFixed, setShowAllFixed] = useState(false);
+  const [showAllCustom, setShowAllCustom] = useState(false);
+  const customSectionRef = useRef<HTMLDivElement>(null);
+  const fixedSectionRef = useRef<HTMLDivElement>(null);
+  const MOBILE_CARD_LIMIT = 3;
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission | "unsupported">(() => {
       if (typeof window === "undefined") return "default";
@@ -297,38 +302,124 @@ export default function Home() {
           >
             <h2 className="mb-3 text-sm font-medium uppercase tracking-[0.17em] text-blue-100/70">Important Events</h2>
             <p className="mb-2 text-xs uppercase tracking-[0.16em] text-blue-100/55">Milestones</p>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {fixedEvents.map((event, index) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  index={index}
-                  isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
-                  onRequestDelete={requestEventDelete}
-                />
+
+            {/* Fixed events grid */}
+            <div ref={fixedSectionRef} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {fixedEvents
+                .slice(0, showAllFixed ? fixedEvents.length : MOBILE_CARD_LIMIT)
+                .map((event, index) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    index={index}
+                    isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                    onRequestDelete={requestEventDelete}
+                  />
+                ))}
+              {/* Show hidden cards always on md+ */}
+              {fixedEvents.slice(MOBILE_CARD_LIMIT).map((event, index) => (
+                <div key={event.id} className="hidden md:block">
+                  <EventCard
+                    event={event}
+                    index={MOBILE_CARD_LIMIT + index}
+                    isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                    onRequestDelete={requestEventDelete}
+                  />
+                </div>
               ))}
             </div>
 
+            {/* Show more / less toggle — milestones (mobile only) */}
+            {fixedEvents.length > MOBILE_CARD_LIMIT && (
+              <div className="mt-3 flex justify-center md:hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showAllFixed) {
+                      fixedSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                    setShowAllFixed((prev) => !prev);
+                  }}
+                  className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-blue-100/80 transition hover:border-cyan-300/40 hover:bg-white/10 hover:text-white active:scale-95"
+                >
+                  {showAllFixed ? (
+                    <>
+                      <svg className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                      Show less
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      Show {fixedEvents.length - MOBILE_CARD_LIMIT} more milestone{fixedEvents.length - MOBILE_CARD_LIMIT !== 1 ? "s" : ""}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Custom (Your) events */}
             {sortedCustomEvents.length > 0 ? (
               <>
                 <p className="mb-2 mt-5 text-xs uppercase tracking-[0.16em] text-blue-100/55">Your Events</p>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  {sortedCustomEvents.map((event, index) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      index={index}
-                      isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
-                      onRequestDelete={requestEventDelete}
-                      onRequestEdit={requestEventEdit}
-                    />
+                <div ref={customSectionRef} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  {sortedCustomEvents
+                    .slice(0, showAllCustom ? sortedCustomEvents.length : MOBILE_CARD_LIMIT)
+                    .map((event, index) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        index={index}
+                        isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                        onRequestDelete={requestEventDelete}
+                        onRequestEdit={requestEventEdit}
+                      />
+                    ))}
+                  {/* Always show remaining on md+ */}
+                  {sortedCustomEvents.slice(MOBILE_CARD_LIMIT).map((event, index) => (
+                    <div key={event.id} className="hidden md:block">
+                      <EventCard
+                        event={event}
+                        index={MOBILE_CARD_LIMIT + index}
+                        isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                        onRequestDelete={requestEventDelete}
+                        onRequestEdit={requestEventEdit}
+                      />
+                    </div>
                   ))}
                 </div>
+
+                {/* Show more / less toggle — custom events (mobile only) */}
+                {sortedCustomEvents.length > MOBILE_CARD_LIMIT && (
+                  <div className="mt-3 flex justify-center md:hidden">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (showAllCustom) {
+                          customSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                        setShowAllCustom((prev) => !prev);
+                      }}
+                      className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-blue-100/80 transition hover:border-cyan-300/40 hover:bg-white/10 hover:text-white active:scale-95"
+                    >
+                      {showAllCustom ? (
+                        <>
+                          <svg className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                          Show less
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-4 w-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                          Show {sortedCustomEvents.length - MOBILE_CARD_LIMIT} more event{sortedCustomEvents.length - MOBILE_CARD_LIMIT !== 1 ? "s" : ""}
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </>
             ) : null}
           </motion.section>
 
-          <div className="flex flex-col items-center gap-4 sm:items-end">
+          <div className="mt-10 flex flex-col items-center gap-4 sm:mt-6 sm:items-end">
             <p className="text-center text-sm text-blue-100/80 sm:text-right">
               Show some love by starring the repo! 🚀
             </p>
