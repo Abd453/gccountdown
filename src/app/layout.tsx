@@ -34,7 +34,19 @@ export default function RootLayout({
           <div className="flex-1">{children}</div>
           <footer className="border-t border-white/10 bg-black/80 px-4 py-4 text-center backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-6xl">
-              <p className="text-xs text-blue-100/65 sm:text-sm">© 2026 Abdallah Abdurazak. All rights reserved.</p>
+              <p className="text-xs text-blue-100/70 sm:text-sm">
+                © 2026
+                <a
+                  href="https://github.com/Abd453"
+                  className="ml-1 font-semibold text-blue-400 
+               hover:text-gray-300 
+               hover:underline underline-offset-4
+               transition-all duration-300 ease-in-out
+               cursor-pointer"
+                >
+                  Abdallah Abdurazak
+                </a>. All rights reserved.
+              </p>
             </div>
           </footer>
         </div>

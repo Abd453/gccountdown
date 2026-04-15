@@ -328,31 +328,37 @@ export default function Home() {
             ) : null}
           </motion.section>
 
-          <footer className="mt-20 block border-t border-white/5 pb-10 pt-8">
-            <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-              <div className="text-center sm:text-left">
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-100/40">Open Source Project</p>
-                <p className="mt-1 text-xs text-blue-100/60">© 2026 GC Countdown. Built for the graduating class.</p>
-              </div>
-              
-              <div className="flex flex-col items-center gap-4 sm:items-end">
-                <p className="text-center text-sm text-blue-100/80 sm:text-right">
-                  Show some love by starring the repo! 🚀
-                </p>
-                <a
-                  href="https://github.com/Abd453/gccountdown"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-2.5 text-sm font-semibold text-yellow-200 transition-all hover:bg-yellow-400/20 hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]"
-                >
-                  <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                  Star on GitHub
-                </a>
-              </div>
+          <div className="flex flex-col items-center gap-4 sm:items-end">
+            <p className="text-center text-sm text-blue-100/80 sm:text-right">
+              Show some love by starring the repo! 🚀
+            </p>
+
+            <div className="flex items-center gap-3">
+              <a
+                href="https://github.com/Abd453/gccountdown"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-2.5 text-sm font-semibold text-yellow-200 transition-all hover:bg-yellow-400/20 hover:shadow-[0_0_20px_rgba(250,204,21,0.2)]"
+              >
+                <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+                Star on GitHub
+              </a>
+
+              <a
+                href="https://www.linkedin.com/in/abdallah-abdurazak-728aa7278/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-400/10 px-5 py-2.5 text-sm font-semibold text-blue-200 transition-all hover:bg-blue-400/20 hover:shadow-[0_0_20px_rgba(96,165,250,0.2)]"
+              >
+                <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.95v5.66H9.37V9h3.41v1.56h.05c.47-.89 1.63-1.85 3.35-1.85 3.58 0 4.24 2.36 4.24 5.43v6.31zM5.34 7.43c-1.14 0-2.06-.92-2.06-2.06s.92-2.06 2.06-2.06 2.06.92 2.06 2.06-.92 2.06-2.06 2.06zM7.12 20.45H3.56V9h3.56v11.45z" />
+                </svg>
+                LinkedIn
+              </a>
             </div>
-          </footer>
+          </div>
         </div>
       </main>
 
