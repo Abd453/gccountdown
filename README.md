@@ -46,7 +46,8 @@ Predefined system events covering the full academic endgame:
 ### 📝 Custom Events
 - Add your own personal events with **title, start date, end date, start time, and end time**
 - **Edit** any custom event at any time via the kebab menu (⋮) on the card
-- **Delete** events with a confirmation modal to prevent accidents
+- **Delete** events one by one or enter **selection mode** to bulk-delete multiple custom events at once
+- **Responsive UI:** Custom events seamlessly adapt to small screens, showing up to three cards initially with "Show more / Show less" expansion buttons
 - All custom events are **persisted to `localStorage`** — they survive page refreshes
 
 ### 📊 Journey Progress Bar
@@ -208,47 +209,7 @@ Or connect your GitHub repository directly at [vercel.com/new](https://vercel.co
 
 ---
 
-## 📦 Component Reference
 
-### `<EventCard>`
-Displays a single graduation event. For custom events, renders a **3-dot kebab menu (⋮)** with **Edit** and **Delete** options. System events show an **Info** link instead.
-
-Props:
-```ts
-{
-  event: GraduationEvent
-  index: number             // used for staggered entrance animation
-  isActiveToday: boolean    // highlights card with fuchsia border if active
-  onRequestDelete?: (event) => void
-  onRequestEdit?:  (event) => void
-}
-```
-
-### `<EditEventModal>`
-Full-featured edit modal pre-filled with the event's current values. Supports editing title, start/end dates, and optional start/end times. Saves to state on submit.
-
-### `<ConfirmDeleteModal>`
-Minimal confirmation dialog to prevent accidental deletions. Shows the event name and requires explicit confirmation.
-
-### `<CustomEventForm>`
-Form with fields for title, start date, end date, and optional times. Calls `onAddEvent` on valid submission and resets all fields.
-
-### `<CountdownCard>`
-The hero component. Displays the live countdown to June 20, 2026 in four flipping digit blocks (days, hours, minutes, seconds).
-
-### `<ProgressCard>`
-A progress bar from journey start (January 1, 2026 or earliest milestone) to graduation day. Shows exact percentage.
-
-### `<TodayPanel>`
-Lists all events that start or end today with a live `HH:MM:SS` countdown. Hidden when no events are active today.
-
-### `<OnboardingTour>`
-A four-step guided tour overlay for first-time visitors that walks through the app's key sections. Persisted to `localStorage`.
-
-### `<ToastMessage>`
-Animated slide-in toast for success feedback (add, edit, delete). Auto-dismisses after 2.2 seconds.
-
----
 
 ## 🤝 Contributing
 
