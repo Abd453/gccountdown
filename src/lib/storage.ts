@@ -6,15 +6,30 @@ function isValidEvent(event: unknown): event is GraduationEvent {
   if (!event || typeof event !== "object") return false;
 
   const candidate = event as GraduationEvent;
-  return (
+  
+  const hasValidFields = 
     typeof candidate.id === "string" &&
     typeof candidate.title === "string" &&
     typeof candidate.startDate === "string" &&
     typeof candidate.endDate === "string" &&
     (candidate.startTime === undefined || typeof candidate.startTime === "string") &&
     (candidate.endTime === undefined || typeof candidate.endTime === "string") &&
-    candidate.source === "custom"
-  );
+    candidate.source === "custom";
+
+  if (!hasValidFields) return false;
+
+  // Basic date format validation YYYY-MM-DD
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(candidate.startDate) || !dateRegex.test(candidate.endDate)) return false;
+
+  // Check logically valid dates
+  const start = new Date(candidate.startDate);
+  const end = new Date(candidate.endDate);
+  
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return false;
+  if (end.getTime() < start.getTime()) return false;
+
+  return true;
 }
 
 export function loadCustomEvents(): GraduationEvent[] {

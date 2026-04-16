@@ -134,12 +134,36 @@ export default function Home() {
 
       if (alreadyNotified) return;
 
-      new Notification(title, {
-        body,
-        tag: `gc-${event.id}-${condition}`,
-        requireInteraction: true,
-      });
-      window.localStorage.setItem(notificationKey, "1");
+      try {
+        // Try standard browser Notification API
+        new Notification(title, {
+          body,
+          tag: `gc-${event.id}-${condition}`,
+          requireInteraction: true,
+        });
+        window.localStorage.setItem(notificationKey, "1");
+      } catch (error) {
+        // On mobile (e.g., Android Chrome/PWA), "new Notification" might throw "Illegal constructor"
+        // In that case, we need to use a service worker if available
+        if (
+          "serviceWorker" in navigator &&
+          error instanceof TypeError &&
+          error.message.includes("constructor")
+        ) {
+          navigator.serviceWorker.ready.then((reg) => {
+            reg.showNotification(title, {
+              body,
+              tag: `gc-${event.id}-${condition}`,
+              requireInteraction: true,
+            });
+            window.localStorage.setItem(notificationKey, "1");
+          }).catch((swError) => {
+            console.error("Service Worker notification failed:", swError);
+          });
+        } else {
+          console.error("Notification API failed:", error);
+        }
+      }
     });
   }, [allEvents, notificationPermission]);
 
@@ -175,7 +199,14 @@ export default function Home() {
       endDateTime.setHours(23, 59, 59, 999);
     }
 
+    // Defensive check for invalid generated dates
+    if (Number.isNaN(startDateTime.getTime()) || Number.isNaN(endDateTime.getTime())) {
+      setToastMessage("Invalid date provided.");
+      return;
+    }
+
     if (endDateTime.getTime() < startDateTime.getTime()) {
+      setToastMessage("End date cannot be earlier than start date.");
       return;
     }
 

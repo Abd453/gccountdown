@@ -61,7 +61,17 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
 const DAY_MS = 1000 * 60 * 60 * 24;
 
 export function parseLocalDate(dateString: string): Date {
-  const [year, month, day] = dateString.split("-").map(Number);
+  if (!dateString || typeof dateString !== "string") {
+    return new Date();
+  }
+  const parts = dateString.split("-");
+  if (parts.length !== 3) {
+    return new Date();
+  }
+  const [year, month, day] = parts.map(Number);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    return new Date();
+  }
   return new Date(year, month - 1, day);
 }
 
