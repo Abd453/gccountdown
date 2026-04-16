@@ -1,4 +1,4 @@
-import type { GraduationEvent } from "@/lib/types";
+import type { GraduationEvent, Countdown } from "@/lib/types";
 
 export type EventNotificationCondition =
   | "week-before"
@@ -23,7 +23,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     detailsUrl: "https://t.me/student_Union1/2186",
     source: "system",
   },
-  
+
   {
     id: "final-exams",
     title: "Final Exams",
@@ -62,15 +62,15 @@ const DAY_MS = 1000 * 60 * 60 * 24;
 
 export function parseLocalDate(dateString: string): Date {
   if (!dateString || typeof dateString !== "string") {
-    return new Date();
+    return new Date(NaN);
   }
   const parts = dateString.split("-");
   if (parts.length !== 3) {
-    return new Date();
+    return new Date(NaN);
   }
   const [year, month, day] = parts.map(Number);
   if (isNaN(year) || isNaN(month) || isNaN(day)) {
-    return new Date();
+    return new Date(NaN);
   }
   return new Date(year, month - 1, day);
 }
@@ -155,7 +155,11 @@ export function getTodayEventCountdowns(
     .map((event) => {
       const { start, end } = getEventDateTimeRange(event);
 
-      if (!isDateInRange(today, event.startDate, event.endDate)) {
+      // Only include events that are strictly "today only" (start and end on the same day, which is today)
+      if (
+        !isSameDay(parseLocalDate(event.startDate), today) ||
+        !isSameDay(parseLocalDate(event.endDate), today)
+      ) {
         return null;
       }
 
@@ -240,9 +244,40 @@ export function sortCustomEventsChronologically(events: GraduationEvent[]): Grad
   });
 }
 
+export function calculateRemainingTime(targetDate: Date, currentDate = new Date()): Countdown {
+  const diffMs = targetDate.getTime() - currentDate.getTime();
+
+  if (diffMs <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isComplete: true };
+  }
+
+  const days = Math.floor(diffMs / DAY_MS);
+  const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
+  const seconds = Math.floor((diffMs / 1000) % 60);
+
+  return { days, hours, minutes, seconds, isComplete: false };
+}
+
+export function getEventProgressState(event: GraduationEvent, currentDate = new Date()) {
+  const { start, end } = getEventDateTimeRange(event);
+  const now = currentDate.getTime();
+
+  if (now < start.getTime()) {
+    const diffMs = start.getTime() - now;
+    const days = Math.ceil(diffMs / DAY_MS);
+    return { days, text: `${days} day${days === 1 ? "" : "s"} left`, tone: getUrgencyTone(days) };
+  } else if (now <= end.getTime()) {
+    const diffMs = end.getTime() - now;
+    const days = Math.ceil(diffMs / DAY_MS);
+    return { days, text: `${days} day${days === 1 ? "" : "s"} left`, tone: getUrgencyTone(days) };
+  } else {
+    return { days: -1, text: "Event completed", tone: "green" as const };
+  }
+}
+
 export function getDaysUntil(targetDate: Date, currentDate = new Date()): number {
-  const diffMs = startOfDay(targetDate).getTime() - startOfDay(currentDate).getTime();
-  return Math.ceil(diffMs / DAY_MS);
+  return calculateRemainingTime(targetDate, currentDate).days;
 }
 
 export function calculateProgress(currentDate: Date, startDate: Date, endDate: Date): number {

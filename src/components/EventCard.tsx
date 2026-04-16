@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { formatEventRange, getDaysUntil, getUrgencyTone, parseLocalDate } from "@/lib/events";
+import { formatEventRange, getUrgencyTone, getEventProgressState } from "@/lib/events";
 import type { GraduationEvent } from "@/lib/types";
 
 type EventCardProps = {
@@ -34,8 +34,7 @@ export function EventCard({
   isSelected = false,
   onToggleSelect,
 }: EventCardProps) {
-  const daysUntilStart = getDaysUntil(parseLocalDate(event.startDate));
-  const tone = getUrgencyTone(daysUntilStart);
+  const { days, text, tone } = getEventProgressState(event);
   const isExternalInfoLink =
     typeof event.detailsUrl === "string" && /^https?:\/\//i.test(event.detailsUrl);
 
@@ -62,15 +61,13 @@ export function EventCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.06 * index }}
       onClick={isSelectionMode && onToggleSelect ? () => onToggleSelect(event.id) : undefined}
-      className={`group rounded-2xl border bg-white/8 p-4 backdrop-blur-lg transition-shadow ${
-        isSelectionMode ? "cursor-pointer select-none" : ""
-      } ${
-        isSelected
+      className={`group rounded-2xl border bg-white/8 p-4 backdrop-blur-lg transition-shadow ${isSelectionMode ? "cursor-pointer select-none" : ""
+        } ${isSelected
           ? "border-cyan-400/70 shadow-lg shadow-cyan-500/25 ring-2 ring-cyan-400/40"
           : isActiveToday
-          ? "border-fuchsia-300/70 shadow-lg shadow-fuchsia-500/30"
-          : "border-white/12 shadow-md shadow-black/30"
-      }`}
+            ? "border-fuchsia-300/70 shadow-lg shadow-fuchsia-500/30"
+            : "border-white/12 shadow-md shadow-black/30"
+        }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -93,11 +90,10 @@ export function EventCard({
                 e.stopPropagation();
                 onToggleSelect?.(event.id);
               }}
-              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition ${
-                isSelected
-                  ? "border-cyan-400 bg-cyan-400 text-black"
-                  : "border-white/30 bg-white/5 text-transparent hover:border-white/60"
-              }`}
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition ${isSelected
+                ? "border-cyan-400 bg-cyan-400 text-black"
+                : "border-white/30 bg-white/5 text-transparent hover:border-white/60"
+                }`}
             >
               {/* checkmark */}
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -195,10 +191,8 @@ export function EventCard({
           )}
         </div>
       </div>
-      <p className={`mt-3 text-sm ${urgencyStyles[tone]}`}>
-        {daysUntilStart >= 0
-          ? `${daysUntilStart} day${daysUntilStart === 1 ? "" : "s"} left`
-          : "Event started"}
+      <p className={`mt-3 text-sm font-medium tracking-wide ${urgencyStyles[tone]}`}>
+        {text}
       </p>
     </motion.article>
   );

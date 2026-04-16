@@ -16,4 +16,5 @@ export type Countdown = {
   hours: number;
   minutes: number;
   seconds: number;
+  isComplete?: boolean;
 };

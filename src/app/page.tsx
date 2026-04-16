@@ -221,6 +221,7 @@ export default function Home() {
     };
 
     setCustomEvents((previous) => [...previous, newEvent]);
+    setToastMessage("✅ Event added successfully");
   }
 
   function requestEventDelete(event: GraduationEvent) {
