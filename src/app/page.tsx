@@ -11,7 +11,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ToastMessage } from "@/components/ToastMessage";
 import { TodayPanel } from "@/components/TodayPanel";
-import { CseAnnouncement } from "@/components/CseAnnouncement";
+// import { CseAnnouncement } from "@/components/CseAnnouncement";
 import { useCountdown } from "@/hooks/useCountdown";
 import {
   calculateProgress,
@@ -374,7 +374,7 @@ export default function Home() {
                     event={event}
                     index={index}
                     isActiveToday={allEvents.some((e) => e.id === event.id && (
-                      isSameDay(parseLocalDate(e.startDate), now) || 
+                      isSameDay(parseLocalDate(e.startDate), now) ||
                       isSameDay(parseLocalDate(e.endDate), now)
                     ))}
                     onRequestDelete={requestEventDelete}
@@ -387,7 +387,7 @@ export default function Home() {
                     event={event}
                     index={MOBILE_CARD_LIMIT + index}
                     isActiveToday={allEvents.some((e) => e.id === event.id && (
-                      isSameDay(parseLocalDate(e.startDate), now) || 
+                      isSameDay(parseLocalDate(e.startDate), now) ||
                       isSameDay(parseLocalDate(e.endDate), now)
                     ))}
                     onRequestDelete={requestEventDelete}
@@ -499,7 +499,7 @@ export default function Home() {
                         event={event}
                         index={index}
                         isActiveToday={allEvents.some((e) => e.id === event.id && (
-                          isSameDay(parseLocalDate(e.startDate), now) || 
+                          isSameDay(parseLocalDate(e.startDate), now) ||
                           isSameDay(parseLocalDate(e.endDate), now)
                         ))}
                         onRequestDelete={requestEventDelete}
@@ -516,7 +516,7 @@ export default function Home() {
                         event={event}
                         index={MOBILE_CARD_LIMIT + index}
                         isActiveToday={allEvents.some((e) => e.id === event.id && (
-                          isSameDay(parseLocalDate(e.startDate), now) || 
+                          isSameDay(parseLocalDate(e.startDate), now) ||
                           isSameDay(parseLocalDate(e.endDate), now)
                         ))}
                         onRequestDelete={requestEventDelete}
