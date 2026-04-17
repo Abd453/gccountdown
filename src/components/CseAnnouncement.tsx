@@ -51,7 +51,7 @@ export function CseAnnouncement() {
               <div>
                 <h3 className="text-lg font-bold text-white">Exit Exam Model</h3>
                 <p className="mt-1 text-sm text-blue-100/70">
-                  Reminder for <span className="text-cyan-300 font-semibold">CSE Department</span> students: Today's model exam starts at <span className="text-white font-bold">2:00 PM</span>.
+                  Reminder for <span className="text-cyan-300 font-semibold">CSE Department</span> students: Today's Exit Model Exam starts at <span className="text-white font-bold">2:00 PM</span>.
                 </p>
               </div>
 
