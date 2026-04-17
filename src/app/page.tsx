@@ -612,7 +612,7 @@ export default function Home() {
         onSave={confirmEditEvent}
       />
       <ToastMessage message={toastMessage} />
-      <CseAnnouncement />
+      {/* <CseAnnouncement /> */}
       <OnboardingTour />
     </>
   );
