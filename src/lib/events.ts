@@ -21,6 +21,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     startDate: "2026-04-17",
     endDate: "2026-04-17",
     startTime: "14:00:00",
+    endTime: "17:00:00",
     detailsUrl: "https://t.me/student_Union1/2186",
     source: "system",
   },

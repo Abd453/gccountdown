@@ -9,9 +9,9 @@ export default function ExitExamModelPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(56,189,248,0.22),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(168,85,247,0.18),transparent_34%),linear-gradient(145deg,#020617,#09090b_45%,#140b2c)]" />
       <div className="relative mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <p className="text-xs uppercase tracking-[0.25em] text-cyan-200/75">Exit Exam Resource</p>
-        <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-4xl">Exit Exam Model (CSE) - Friday, April 17 (2:00 PM)</h1>
+        <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-4xl">Exit Exam Model (CSE) - Friday, April 17 (2 PM - 5 PM)</h1>
         <p className="mt-3 max-w-3xl text-sm text-blue-100/80 sm:text-base">
-          This page contains the shared model calendar image for the <span className="text-cyan-300 font-semibold">CSE Department</span> exit exam planning day. The exam is scheduled to start at <span className="text-white font-bold text-lg">2:00 PM</span> today. Use it as a quick
+          This page contains the shared model calendar image for the <span className="text-cyan-300 font-semibold">CSE Department</span> exit exam planning day. The exam is scheduled from <span className="text-white font-bold text-lg">2:00 PM to 5:00 PM</span> today. Use it as a quick
           reference while preparing your schedule.
         </p>
 
