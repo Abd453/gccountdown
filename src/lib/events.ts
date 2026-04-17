@@ -23,15 +23,16 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     startTime: "14:00:00",
     endTime: "17:00:00",
     detailsUrl: "https://t.me/student_Union1/2186",
+    congratsMessage: "Congratulations on completing the model exam! One step closer to the real thing.",
     source: "system",
   },
-
   {
     id: "final-exams",
     title: "Final Exams",
     startDate: "2026-05-11",
     endDate: "2026-05-22",
     detailsUrl: "/milestone-info/final-exams",
+    congratsMessage: "Exams finished! Take a deep breath and enjoy the break.",
     source: "system",
   },
   {
@@ -40,6 +41,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     startDate: "2026-05-18",
     endDate: "2026-05-22",
     detailsUrl: "/milestone-info/thesis-defense",
+    congratsMessage: "You defended your thesis! Incredible work - you're officially a master of your craft.",
     source: "system",
   },
   {
@@ -48,6 +50,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     startDate: "2026-06-10",
     endDate: "2026-06-17",
     detailsUrl: "/milestone-info/exit-exam",
+    congratsMessage: "The big one is over. You've cleared the final hurdle!",
     source: "system",
   },
   {
@@ -56,6 +59,7 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
     startDate: "2026-06-20",
     endDate: "2026-06-20",
     detailsUrl: "/milestone-info/graduation-day",
+    congratsMessage: "Happy Graduation! You did it! The world is yours now.",
     source: "system",
   },
 ];

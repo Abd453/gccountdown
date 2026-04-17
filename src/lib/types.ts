@@ -8,6 +8,7 @@ export type GraduationEvent = {
   startTime?: string;
   endTime?: string;
   detailsUrl?: string;
+  congratsMessage?: string;
   source: EventSource;
 };
 

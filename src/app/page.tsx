@@ -11,7 +11,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ToastMessage } from "@/components/ToastMessage";
 import { TodayPanel } from "@/components/TodayPanel";
-// import { CseAnnouncement } from "@/components/CseAnnouncement";
+import { CongratulationsModal } from "@/components/CongratulationsModal";
 import { useCountdown } from "@/hooks/useCountdown";
 import {
   calculateProgress,
@@ -56,6 +56,7 @@ export default function Home() {
       if (!("Notification" in window)) return "unsupported";
       return Notification.permission;
     });
+  const [congratsEvent, setCongratsEvent] = useState<GraduationEvent | null>(null);
 
   useEffect(() => {
     saveCustomEvents(customEvents);
@@ -168,6 +169,34 @@ export default function Home() {
       }
     });
   }, [allEvents, notificationPermission]);
+
+  // Check for completed events to show congratulations
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const congratulatedIds = JSON.parse(localStorage.getItem("congratulated-events") || "[]") as string[];
+      
+      const newlyCompleted = allEvents.find((event) => {
+        if (!event.congratsMessage) return false;
+        if (congratulatedIds.includes(event.id)) return false;
+
+        const { end } = getEventDateTimeRange(event);
+        // Only show if it ended within the last hour to avoid ancient ones popping up on load
+        const oneHourAgo = now.getTime() - (1000 * 60 * 60);
+        return now.getTime() > end.getTime() && end.getTime() > oneHourAgo;
+      });
+
+      if (newlyCompleted) {
+        setCongratsEvent(newlyCompleted);
+        const nextIds = [...congratulatedIds, newlyCompleted.id];
+        localStorage.setItem("congratulated-events", JSON.stringify(nextIds));
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [allEvents]);
 
   async function requestNotificationPermission() {
     if (typeof window === "undefined" || !("Notification" in window)) {
@@ -612,6 +641,10 @@ export default function Home() {
         onSave={confirmEditEvent}
       />
       <ToastMessage message={toastMessage} />
+      <CongratulationsModal 
+        event={congratsEvent} 
+        onClose={() => setCongratsEvent(null)} 
+      />
       {/* <CseAnnouncement /> */}
       <OnboardingTour />
     </>
