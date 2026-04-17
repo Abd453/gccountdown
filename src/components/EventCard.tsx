@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { formatEventRange, getUrgencyTone, getEventProgressState } from "@/lib/events";
+import { formatEventRange, getUrgencyTone, getEventProgressState, formatDurationHMS, getEventDateTimeRange } from "@/lib/events";
 import type { GraduationEvent } from "@/lib/types";
 
 type EventCardProps = {
@@ -55,6 +55,36 @@ export function EventCard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  // Live countdown for "Exit Exam Model" if it's today
+  const [liveCountdown, setLiveCountdown] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (event.id !== "exit-exam-model" || !isActiveToday) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const { start, end } = getEventDateTimeRange(event);
+      let diff = 0;
+      let label = "";
+
+      if (now < start) {
+        diff = start.getTime() - now.getTime();
+        label = "Starts in: ";
+      } else if (now < end) {
+        diff = end.getTime() - now.getTime();
+        label = "Ends in: ";
+      }
+
+      if (diff > 0) {
+        setLiveCountdown(`${label}${formatDurationHMS(diff)}`);
+      } else {
+        setLiveCountdown(null);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [event, isActiveToday]);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
@@ -76,8 +106,8 @@ export function EventCard({
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
           {isActiveToday ? (
-            <span className="rounded-full border border-fuchsia-300/60 bg-fuchsia-500/20 px-2.5 py-1 text-xs font-medium uppercase tracking-wider text-fuchsia-100">
-              Today
+            <span className="rounded-full border border-fuchsia-300/60 bg-fuchsia-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-fuchsia-100">
+              Todays Event
             </span>
           ) : null}
 
@@ -192,7 +222,7 @@ export function EventCard({
         </div>
       </div>
       <p className={`mt-3 text-sm font-medium tracking-wide ${urgencyStyles[tone]}`}>
-        {text}
+        {liveCountdown || text}
       </p>
     </motion.article>
   );

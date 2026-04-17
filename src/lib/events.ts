@@ -17,9 +17,10 @@ export type TodayEventCountdown = {
 export const PREDEFINED_EVENTS: GraduationEvent[] = [
   {
     id: "exit-exam-model",
-    title: "Exit Exam Model",
+    title: "Exit Exam Model (CSE Department)",
     startDate: "2026-04-17",
     endDate: "2026-04-17",
+    startTime: "14:00:00",
     detailsUrl: "https://t.me/student_Union1/2186",
     source: "system",
   },

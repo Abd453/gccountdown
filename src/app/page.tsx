@@ -11,6 +11,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { ProgressCard } from "@/components/ProgressCard";
 import { ToastMessage } from "@/components/ToastMessage";
 import { TodayPanel } from "@/components/TodayPanel";
+import { CseAnnouncement } from "@/components/CseAnnouncement";
 import { useCountdown } from "@/hooks/useCountdown";
 import {
   calculateProgress,
@@ -22,6 +23,7 @@ import {
   getJourneyStartReference,
   getTodayEventCountdowns,
   getUrgencyTone,
+  isSameDay,
   parseLocalDate,
   PREDEFINED_EVENTS,
   sortCustomEventsChronologically,
@@ -371,7 +373,10 @@ export default function Home() {
                     key={event.id}
                     event={event}
                     index={index}
-                    isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                    isActiveToday={allEvents.some((e) => e.id === event.id && (
+                      isSameDay(parseLocalDate(e.startDate), now) || 
+                      isSameDay(parseLocalDate(e.endDate), now)
+                    ))}
                     onRequestDelete={requestEventDelete}
                   />
                 ))}
@@ -381,7 +386,10 @@ export default function Home() {
                   <EventCard
                     event={event}
                     index={MOBILE_CARD_LIMIT + index}
-                    isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                    isActiveToday={allEvents.some((e) => e.id === event.id && (
+                      isSameDay(parseLocalDate(e.startDate), now) || 
+                      isSameDay(parseLocalDate(e.endDate), now)
+                    ))}
                     onRequestDelete={requestEventDelete}
                   />
                 </div>
@@ -490,7 +498,10 @@ export default function Home() {
                         key={event.id}
                         event={event}
                         index={index}
-                        isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                        isActiveToday={allEvents.some((e) => e.id === event.id && (
+                          isSameDay(parseLocalDate(e.startDate), now) || 
+                          isSameDay(parseLocalDate(e.endDate), now)
+                        ))}
                         onRequestDelete={requestEventDelete}
                         onRequestEdit={requestEventEdit}
                         isSelectionMode={isSelectionMode}
@@ -504,7 +515,10 @@ export default function Home() {
                       <EventCard
                         event={event}
                         index={MOBILE_CARD_LIMIT + index}
-                        isActiveToday={activeToday.some((activeEvent) => activeEvent.id === event.id)}
+                        isActiveToday={allEvents.some((e) => e.id === event.id && (
+                          isSameDay(parseLocalDate(e.startDate), now) || 
+                          isSameDay(parseLocalDate(e.endDate), now)
+                        ))}
                         onRequestDelete={requestEventDelete}
                         onRequestEdit={requestEventEdit}
                         isSelectionMode={isSelectionMode}
@@ -598,6 +612,7 @@ export default function Home() {
         onSave={confirmEditEvent}
       />
       <ToastMessage message={toastMessage} />
+      <CseAnnouncement />
       <OnboardingTour />
     </>
   );
