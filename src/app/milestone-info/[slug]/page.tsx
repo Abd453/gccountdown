@@ -15,9 +15,9 @@ const MILESTONE_INFO: Record<string, MilestoneInfo> = {
     dateRange: "May 11 - May 22, 2026",
   },
   "thesis-defense": {
-    title: "Thesis Defense",
+    title: "5th Year CSE & SE Grad Defence",
     subtitle: "Milestone Reference",
-    dateRange: "May 18 - May 22, 2026",
+    dateRange: "May 7, 2026",
   },
   "exit-exam": {
     title: "Exit Exam",

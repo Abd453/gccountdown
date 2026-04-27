@@ -39,7 +39,7 @@ Predefined system events covering the full academic endgame:
 |---|---|
 | Exit Exam Model | Apr 17, 2026 |
 | Final Exams | May 11 – May 22, 2026 |
-| Thesis Defense | May 18 – May 22, 2026 |
+| 5th Year CSE & SE Grad Defence | May 7, 2026 |
 | Exit Exam | Jun 10 – Jun 17, 2026 |
 | Graduation Day 🎓 | Jun 20, 2026 |
 

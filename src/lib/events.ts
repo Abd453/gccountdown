@@ -37,9 +37,9 @@ export const PREDEFINED_EVENTS: GraduationEvent[] = [
   },
   {
     id: "thesis-defense",
-    title: "Thesis Defense",
-    startDate: "2026-05-18",
-    endDate: "2026-05-22",
+    title: "5th Year CSE & SE Grad Defence",
+    startDate: "2026-05-07",
+    endDate: "2026-05-07",
     detailsUrl: "/milestone-info/thesis-defense",
     congratsMessage: "You defended your thesis! Incredible work - you're officially a master of your craft.",
     source: "system",
