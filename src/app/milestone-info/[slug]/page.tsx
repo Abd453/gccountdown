@@ -10,11 +10,6 @@ type MilestoneInfo = {
 };
 
 const MILESTONE_INFO: Record<string, MilestoneInfo> = {
-  "final-exams": {
-    title: "Final Exams",
-    subtitle: "Milestone Reference",
-    dateRange: "May 11 - May 22, 2026",
-  },
   "thesis-defense": {
     title: "5th Year CSE & SE Grad Defence",
     subtitle: "Milestone Reference",
@@ -25,6 +20,11 @@ const MILESTONE_INFO: Record<string, MilestoneInfo> = {
       description:
         "Full details, schedule, and announcements for the 5th Year CSE & SE Graduation Defence are available on the official Telegram channel.",
     },
+  },
+  "final-exams": {
+    title: "Final Exams",
+    subtitle: "Milestone Reference",
+    dateRange: "May 11 - May 22, 2026",
   },
   "exit-exam": {
     title: "Exit Exam",
