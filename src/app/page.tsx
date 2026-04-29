@@ -12,6 +12,7 @@ import { ProgressCard } from "@/components/ProgressCard";
 import { ToastMessage } from "@/components/ToastMessage";
 import { TodayPanel } from "@/components/TodayPanel";
 import { CongratulationsModal } from "@/components/CongratulationsModal";
+import { MotivationalMessage } from "@/components/MotivationalMessage";
 import { useCountdown } from "@/hooks/useCountdown";
 import {
   calculateProgress,
@@ -645,6 +646,7 @@ export default function Home() {
         event={congratsEvent} 
         onClose={() => setCongratsEvent(null)} 
       />
+      <MotivationalMessage />
       {/* <CseAnnouncement /> */}
       <OnboardingTour />
     </>
