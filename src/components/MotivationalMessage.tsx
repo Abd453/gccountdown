@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ export function MotivationalMessage() {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
-  const [daysLeft, setDaysLeft] = useState(-1);
+
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function MotivationalMessage() {
       return;
     }
 
-    setDaysLeft(days);
+
 
     if (days === 9) {
       setTitle("9 Days Remaining!");
@@ -138,7 +139,7 @@ export function MotivationalMessage() {
                   onClick={handleClose}
                   className="rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] active:scale-95"
                 >
-                  I'm Ready!
+                  I&apos;m Ready!
                 </button>
               </div>
             </div>
